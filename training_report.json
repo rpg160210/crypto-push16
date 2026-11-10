@@ -1,0 +1,95 @@
+{
+  "trained_at": "2026-11-10T17:11+00:00",
+  "demo_data": false,
+  "coins": 877,
+  "coin_days": 248125,
+  "exam": {
+    "model": "logistic_regression",
+    "test_period": "2026-08-19 to 2026-11-03",
+    "test_rows": 64967,
+    "accuracy": 56.4,
+    "accuracy_if_you_always_guessed_the_majority": 56.4,
+    "auc": 0.5006,
+    "confidence_check": [
+      {
+        "model_said": "0%-35% chance up",
+        "times": 13833,
+        "actually_went_up": 44.0,
+        "avg_7d_return": 2.29
+      },
+      {
+        "model_said": "35%-45% chance up",
+        "times": 48394,
+        "actually_went_up": 43.1,
+        "avg_7d_return": 0.96
+      },
+      {
+        "model_said": "45%-55% chance up",
+        "times": 2714,
+        "actually_went_up": 51.0,
+        "avg_7d_return": 1.68
+      }
+    ]
+  },
+  "strategy_backtest_test_period": {
+    "trend_following": {
+      "signals": 64967,
+      "win_rate": 48.9,
+      "avg_return_per_signal": 0.17,
+      "median_return_per_signal": -0.02
+    },
+    "momentum": {
+      "signals": 42119,
+      "win_rate": 53.4,
+      "avg_return_per_signal": 1.58,
+      "median_return_per_signal": 0.14
+    },
+    "rsi_reversion": {
+      "signals": 7017,
+      "win_rate": 48.8,
+      "avg_return_per_signal": -0.79,
+      "median_return_per_signal": -0.05
+    },
+    "macd": {
+      "signals": 64967,
+      "win_rate": 53.9,
+      "avg_return_per_signal": 1.13,
+      "median_return_per_signal": 0.18
+    },
+    "bollinger_reversion": {
+      "signals": 7778,
+      "win_rate": 49.2,
+      "avg_return_per_signal": -1.55,
+      "median_return_per_signal": -0.02
+    },
+    "turtle_breakout": {
+      "signals": 15944,
+      "win_rate": 55.8,
+      "avg_return_per_signal": 1.52,
+      "median_return_per_signal": 0.66
+    },
+    "volume_breakout": {
+      "signals": 6461,
+      "win_rate": 43.4,
+      "avg_return_per_signal": 0.1,
+      "median_return_per_signal": -1.57
+    },
+    "dip_in_uptrend": {
+      "signals": 22,
+      "win_rate": 27.3,
+      "avg_return_per_signal": -0.29,
+      "median_return_per_signal": -0.58
+    }
+  },
+  "strategy_weights": {
+    "trend_following": 0.0,
+    "momentum": 0.0,
+    "rsi_reversion": 0.359,
+    "macd": 0.009,
+    "bollinger_reversion": 0.633,
+    "turtle_breakout": 0.0,
+    "volume_breakout": 0.0,
+    "dip_in_uptrend": 0.0
+  },
+  "buy_and_hold_avg_7d_return_test": 1.31
+}
