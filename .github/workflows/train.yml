@@ -10,11 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 300
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with: { python-version: "3.12" }
       - run: pip install -r requirements.txt
-      - uses: actions/cache@v4        # keeps downloaded price history between runs
+      - uses: actions/cache@v5        # keeps downloaded price history between runs
         with:
           path: data
           key: prices-${{ github.run_id }}
@@ -26,4 +26,6 @@ jobs:
           git config user.name "analyst-bot"
           git config user.email "analyst-bot@users.noreply.github.com"
           git add model.joblib training_report.json
-          git commit -m "retrain model" && git push
+          git commit -m "retrain model"
+          git pull --rebase
+          git push
