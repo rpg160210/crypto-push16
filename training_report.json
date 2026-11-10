@@ -1,78 +1,79 @@
 {
-  "trained_at": "2026-11-10T17:11+00:00",
+  "trained_at": "2026-11-10T22:38+00:00",
   "demo_data": false,
-  "coins": 877,
-  "coin_days": 248125,
+  "coins": 878,
+  "coin_days": 248295,
   "exam": {
     "model": "logistic_regression",
     "test_period": "2026-08-19 to 2026-11-03",
-    "test_rows": 64967,
+    "test_rows": 65121,
     "accuracy": 56.4,
-    "accuracy_if_you_always_guessed_the_majority": 56.4,
-    "auc": 0.5006,
+    "accuracy_if_you_always_guessed_the_majority": 56.3,
+    "auc": 0.5017,
     "confidence_check": [
       {
         "model_said": "0%-35% chance up",
-        "times": 13833,
-        "actually_went_up": 44.0,
-        "avg_7d_return": 2.29
+        "times": 13827,
+        "actually_went_up": 44.1,
+        "avg_7d_return": 2.27
       },
       {
         "model_said": "35%-45% chance up",
-        "times": 48394,
+        "times": 48452,
         "actually_went_up": 43.1,
-        "avg_7d_return": 0.96
+        "avg_7d_return": 0.99
       },
       {
         "model_said": "45%-55% chance up",
-        "times": 2714,
-        "actually_went_up": 51.0,
-        "avg_7d_return": 1.68
+        "times": 2814,
+        "actually_went_up": 51.1,
+        "avg_7d_return": 1.54
       }
-    ]
+    ],
+    "model_trusted": false
   },
   "strategy_backtest_test_period": {
     "trend_following": {
-      "signals": 64967,
+      "signals": 65121,
       "win_rate": 48.9,
-      "avg_return_per_signal": 0.17,
+      "avg_return_per_signal": 0.18,
       "median_return_per_signal": -0.02
     },
     "momentum": {
-      "signals": 42119,
+      "signals": 42225,
       "win_rate": 53.4,
       "avg_return_per_signal": 1.58,
       "median_return_per_signal": 0.14
     },
     "rsi_reversion": {
-      "signals": 7017,
+      "signals": 7036,
       "win_rate": 48.8,
       "avg_return_per_signal": -0.79,
       "median_return_per_signal": -0.05
     },
     "macd": {
-      "signals": 64967,
-      "win_rate": 53.9,
-      "avg_return_per_signal": 1.13,
-      "median_return_per_signal": 0.18
+      "signals": 65121,
+      "win_rate": 53.8,
+      "avg_return_per_signal": 1.11,
+      "median_return_per_signal": 0.17
     },
     "bollinger_reversion": {
-      "signals": 7778,
+      "signals": 7792,
       "win_rate": 49.2,
       "avg_return_per_signal": -1.55,
       "median_return_per_signal": -0.02
     },
     "turtle_breakout": {
-      "signals": 15944,
+      "signals": 15966,
       "win_rate": 55.8,
-      "avg_return_per_signal": 1.52,
-      "median_return_per_signal": 0.66
+      "avg_return_per_signal": 1.53,
+      "median_return_per_signal": 0.65
     },
     "volume_breakout": {
-      "signals": 6461,
+      "signals": 6466,
       "win_rate": 43.4,
-      "avg_return_per_signal": 0.1,
-      "median_return_per_signal": -1.57
+      "avg_return_per_signal": 0.11,
+      "median_return_per_signal": -1.55
     },
     "dip_in_uptrend": {
       "signals": 22,
@@ -83,13 +84,13 @@
   },
   "strategy_weights": {
     "trend_following": 0.0,
-    "momentum": 0.0,
-    "rsi_reversion": 0.359,
-    "macd": 0.009,
-    "bollinger_reversion": 0.633,
-    "turtle_breakout": 0.0,
+    "momentum": 0.368,
+    "rsi_reversion": 0.0,
+    "macd": 0.26,
+    "bollinger_reversion": 0.0,
+    "turtle_breakout": 0.372,
     "volume_breakout": 0.0,
     "dip_in_uptrend": 0.0
   },
-  "buy_and_hold_avg_7d_return_test": 1.31
+  "buy_and_hold_avg_7d_return_test": 1.32
 }
