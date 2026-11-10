@@ -54,12 +54,17 @@ def analyze_coin(coin, bundle, btc, load):
         consensus += w * sig
 
     # Model counts 60%, strategy vote 40%. Both range -1..+1.
-    score = 0.6 * (p_up - 0.5) * 2 / 0.3 + 0.4 * consensus  # /0.3: 65% chance up ~= full marks
+    trusted = bundle.get("model_trusted", True)
+    if trusted:
+        score = 0.6 * (p_up - 0.5) * 2 / 0.3 + 0.4 * consensus  # /0.3: 65% chance up ~= full marks
+    else:
+        score = 0.7 * consensus  # model failed its exam -> strategies only (STRONG needs near-full agreement)
     score = float(np.clip(score, -1, 1))
     idx = 0 if score <= -0.5 else 1 if score <= -0.15 else 2 if score < 0.15 else 3 if score < 0.5 else 4
 
-    risk7, risk30 = (core.risk_table(df["close"], 7, p_up),
-                     core.risk_table(df["close"], 30, p_up))
+    tilt = p_up if trusted else None  # untrusted model -> neutral simulations
+    risk7, risk30 = (core.risk_table(df["close"], 7, tilt),
+                     core.risk_table(df["close"], 30, tilt))
     d = risk30["chance_down_25"]
     risk_level = "LOW" if d < 5 else "MEDIUM" if d < 15 else "HIGH" if d < 30 else "EXTREME"
 
@@ -69,7 +74,8 @@ def analyze_coin(coin, bundle, btc, load):
         "price": float(df["close"].iloc[-1]),
         "verdict": VERDICTS[idx],
         "score": round(score, 2),
-        "model_chance_up_7d": round(p_up * 100, 1),
+        "model_trusted": trusted,
+        "model_chance_up_7d": round(p_up * 100, 1) if trusted else None,
         "strategy_consensus": round(consensus, 2),
         "votes": votes,
         "risk_level": risk_level,
@@ -84,8 +90,8 @@ def analyze_coin(coin, bundle, btc, load):
 
 def rule_opinion(r):
     """A blunt opinion written from the numbers (used when Claude isn't set up)."""
-    buys = [k for k, v in r["votes"].items() if v["vote"] == "BUY"]
-    sells = [k for k, v in r["votes"].items() if v["vote"] == "SELL"]
+    buys = [k for k, v in r["votes"].items() if v["vote"] == "BUY" and v["weight"] > 0]
+    sells = [k for k, v in r["votes"].items() if v["vote"] == "SELL" and v["weight"] > 0]
     p, fx, rk = r["model_chance_up_7d"], r["facts"], r["risk_30d"]
     lead = {
         "STRONG BUY": "I like this one a lot.",
@@ -94,9 +100,10 @@ def rule_opinion(r):
         "SELL": "I don't like how this looks.",
         "STRONG SELL": "I'd get out of this one.",
     }[r["verdict"]]
-    n = lambda xs: f"{len(xs)} {'strategy says' if len(xs) == 1 else 'strategies say'}"
-    why = (f" The model gives it a {p}% chance of being higher in a week; "
-           f"{n(buys)} buy ({', '.join(buys) or 'none'}) and "
+    n = lambda xs: f"{len(xs)} {'trusted strategy says' if len(xs) == 1 else 'trusted strategies say'}"
+    why = ((f" The model gives it a {p}% chance of being higher in a week; " if p is not None
+            else " Going by the strategies that have worked lately, ")
+           + f"{n(buys)} buy ({', '.join(buys) or 'none'}) and "
            f"{n(sells)} sell ({', '.join(sells) or 'none'}).")
     if fx["rsi"] > 75:
         why += f" RSI is {fx['rsi']}, it's overheated - chasing it now is how people get burned."
@@ -139,6 +146,10 @@ def claude_opinions(results):
     return {t["coin"]: t for t in json.loads(text)["takes"]}
 
 
+def up(r):
+    return f"{r['model_chance_up_7d']}%" if r["model_trusted"] else "n/a"
+
+
 def fmt_price(p):
     return f"${p:,.2f}" if p >= 1 else f"${p:.6f}"
 
@@ -149,7 +160,7 @@ def print_table(results):
     for r in results:
         k = r["risk_30d"]
         print(f"{r['coin'].upper():12}{fmt_price(r['price']):>14}  {r['verdict']:12}"
-              f"{r['model_chance_up_7d']:>6}%  {r['risk_level']:8}"
+              f"{up(r):>7}  {r['risk_level']:8}"
               f"{k['chance_down_25']:>8}%{k['chance_up_25']:>8}%")
 
 
@@ -161,10 +172,14 @@ def print_report(r):
     print(f"Opinion: {r['opinion']}")
     if r.get("biggest_risk"):
         print(f"Biggest risk: {r['biggest_risk']}")
-    print(f"\nModel: {r['model_chance_up_7d']}% chance it's higher in 7 days")
+    if r["model_trusted"]:
+        print(f"\nModel: {r['model_chance_up_7d']}% chance it's higher in 7 days")
+    else:
+        print("\nModel: switched off (failed its last exam) - verdict uses strategies only")
     print("Strategy votes:", ", ".join(f"{k}={v['vote']}" for k, v in r["votes"].items()))
     print(f"\nWhat could happen - {k7['simulations']:,} simulated futures using this coin's own")
-    print("past swings, tilted toward the model's 7-day view:")
+    print("past swings, tilted toward the model's 7-day view:" if r["model_trusted"]
+          else "past swings (no direction assumed, since the model is switched off):")
     rows = [("Ends higher", "chance_up"), ("Ends lower", "chance_down"),
             ("Up more than 10%", "chance_up_10"), ("Up more than 25%", "chance_up_25"),
             ("Down more than 10%", "chance_down_10"), ("Down more than 25%", "chance_down_25"),
@@ -270,7 +285,7 @@ def push_detail(r):
            "SELL": "chart_with_downwards_trend", "STRONG SELL": "rotating_light"}[r["verdict"]]
     core.notify(
         f"{r['verdict']}: {r['coin'].upper()} @ {fmt_price(r['price'])} | risk {r['risk_level']}",
-        f"{r['opinion']}\n\n7d: {r['model_chance_up_7d']}% chance up\n"
+        f"{r['opinion']}\n\n7d: {up(r)} chance up\n"
         f"30d: {k['chance_up_10']}% chance +10% | {k['chance_down_10']}% chance -10% | "
         f"{k['chance_down_25']}% chance -25%",
         priority="high" if "STRONG" in r["verdict"] else "default", tags=tag)
@@ -285,7 +300,7 @@ def notify_big(results, state, notify_all, first_run):
         new = [r for r in results if "STRONG" in r["verdict"] and state.get(r["coin"]) != r["verdict"]]
     if not new:
         return
-    line = lambda r: (f"{r['coin'].upper()} {r['model_chance_up_7d']}% up-chance, "
+    line = lambda r: (f"{r['coin'].upper()} {r['verdict'].split()[-1].lower()} score {r['score']:+}, "
                       f"risk {r['risk_level']}")
     buys = [r for r in new if r["verdict"] == "STRONG BUY"]
     sells = [r for r in new if r["verdict"] == "STRONG SELL"]

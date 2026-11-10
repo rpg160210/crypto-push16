@@ -33,6 +33,9 @@ from sklearn.preprocessing import StandardScaler
 import core
 
 
+MIN_AUC = 0.53  # below this the model is basically guessing and gets switched off
+
+
 def load_dataset(n_coins: int, demo: bool) -> pd.DataFrame:
     if demo:
         coins = [{"id": "bitcoin"}] + [{"id": f"demo-coin-{i}"} for i in range(1, n_coins)]
@@ -158,9 +161,13 @@ def main():
                             "avg_7d_return": round(float(test["fwd_ret"][mask].mean()) * 100, 2)})
     exam["confidence_check"] = buckets
 
-    # Strategy weights come from the TRAIN period; the scores we show are from TEST.
+    # Strategy trust comes from the MOST RECENT months, because what works in crypto
+    # changes (trending vs. choppy markets). A strategy only gets trust if its typical
+    # (median) trade made money - not just its average, which a few pumps can inflate.
     bt_train, bt_test = backtest(train), backtest(test)
-    weights = {k: max(v["avg_return_per_signal"], 0) * (v["win_rate"] / 100) for k, v in bt_train.items()}
+    weights = {k: (max(v["avg_return_per_signal"], 0) * (v["win_rate"] / 100)
+                   if v["median_return_per_signal"] > 0 and v["signals"] >= 200 else 0)
+               for k, v in bt_test.items()}
     total = sum(weights.values()) or 1
     weights = {k: round(v / total, 3) for k, v in weights.items()}
 
@@ -170,7 +177,11 @@ def main():
     if hasattr(final_model, "feature_importances_"):
         importance = dict(zip(cols, final_model.feature_importances_))
 
+    # If the model couldn't beat a coin flip on the exam, the analyst won't listen to it.
+    model_trusted = exam["auc"] >= MIN_AUC
+    exam["model_trusted"] = model_trusted
     joblib.dump({"model": final_model, "columns": cols, "strategy_weights": weights,
+                 "model_trusted": model_trusted, "auc": exam["auc"],
                  "demo": args.demo}, core.ROOT / "model.joblib")
     report = {
         "trained_at": datetime.now(timezone.utc).isoformat(timespec="minutes"),
@@ -192,11 +203,15 @@ def main():
     for b in buckets:
         print(f"  {b['model_said']:18} -> went up {b['actually_went_up']}% of the time "
               f"({b['times']:,} cases, avg 7d {b['avg_7d_return']:+}%)")
+    if not model_trusted:
+        print(f"!! AUC {exam['auc']} is below {MIN_AUC}: the model has no real edge, so it is "
+              "SWITCHED OFF. Verdicts will use only the strategies that worked recently.")
     print("\nStrategy scoreboard (test period):")
     print(f"  {'strategy':22}{'signals':>9}{'win rate':>10}{'avg 7d':>9}")
     for k, v in sorted(bt_test.items(), key=lambda kv: -kv[1]["avg_return_per_signal"]):
         print(f"  {k:22}{v['signals']:>9,}{v['win_rate']:>9}%{v['avg_return_per_signal']:>+8}%")
     print(f"  (buy-and-hold everything averaged {report['buy_and_hold_avg_7d_return_test']:+}% per 7 days)")
+    print("Strategy trust now:", {k: v for k, v in weights.items() if v})
     print("\nSaved model.joblib and training_report.json")
     if args.demo:
         print("\n!! DEMO MODE: trained on fake prices. These numbers say nothing about real crypto.")
