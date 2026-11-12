@@ -300,7 +300,7 @@ def load_chart_model(demo):
         return None, None
     import joblib
     try:
-        btc = core.fake_history(0) if demo else core.binance_history("BTC")
+        btc = core.fake_history(0, days=1000) if demo else core.binance_history("BTC")
     except Exception as e:
         print(f"  couldn't load Bitcoin history for chart analysis: {e}", file=sys.stderr)
         return None, None
@@ -320,6 +320,7 @@ def main():
     ap.add_argument("--top", type=int, default=15)
     ap.add_argument("--analyze", type=int, default=8, help="how many hyped coins get chart analysis")
     args = ap.parse_args()
+    core.OFFLINE = args.demo
 
     history = json.loads(HISTORY_FILE.read_text()) if HISTORY_FILE.exists() else {"runs": []}
 
@@ -389,7 +390,7 @@ def main():
         chart = None
         if bundle:
             try:
-                hist = (core.fake_history(zlib.crc32(r["coin"].encode())) if args.demo
+                hist = (core.fake_history(zlib.crc32(r["coin"].encode()), days=1000) if args.demo
                         else core.binance_history(r["coin"]))
                 chart = analyze.analyze_coin(r["coin"], bundle, btc, lambda _: hist)
             except analyze.TooNew:

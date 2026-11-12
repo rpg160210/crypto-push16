@@ -1,17 +1,22 @@
-"""Train the analyst on up to 1000 cryptocurrencies.
+"""Train the analyst.
 
-  python train.py              # real data (first run downloads ~1000 coins, takes ~1 hour)
-  python train.py --coins 200  # fewer coins, faster
-  python train.py --demo       # made-up data, runs in a minute, results mean nothing
+  python train.py                      # Binance: every coin incl. delisted ones, ~2.7 years each
+  python train.py --source coingecko   # CoinGecko top 1000, 1 year each (slower, rate-limited)
+  python train.py --demo               # made-up data, runs in a minute, results mean nothing
+
+Data the model learns from (Binance source): daily close/high/low, USD volume, number of
+trades, aggressive-buyer volume, coin age, strength vs Bitcoin, the Crypto Fear & Greed
+Index, plus the 8 strategy signals. Delisted coins are included on purpose so the dead
+ones count too (otherwise the past looks better than it was).
 
 What "training" means here, honestly:
-  * Every coin's last year is cut into days. For each day we record what the 8
+  * Every coin's history is cut into days. For each day we record what the 8
     strategies said and ~15 indicators, then what the price actually did over the
     next 7 days.
   * Strategies are back-tested: how often was each one right, and how much did it make?
   * A machine-learning model (gradient boosted trees vs. logistic regression - whichever
     scores better) learns how to combine all of it into "chance the price is higher in 7 days".
-  * The most recent ~3 months are HIDDEN during training and used only for the final exam,
+  * The most recent 25% of days are HIDDEN during training and used only for the final exam,
     so the accuracy you see is what it scored on data it had never seen.
 """
 
@@ -36,10 +41,19 @@ import core
 MIN_AUC = 0.53  # below this the model is basically guessing and gets switched off
 
 
-def load_dataset(n_coins: int, demo: bool) -> pd.DataFrame:
+def load_dataset(n_coins: int, demo: bool, source: str = "binance") -> pd.DataFrame:
     if demo:
         coins = [{"id": "bitcoin"}] + [{"id": f"demo-coin-{i}"} for i in range(1, n_coins)]
-        get = lambda i, cid: core.fake_history(i)
+        get = lambda i, cid: core.fake_history(i, days=1000)
+    elif source == "binance":
+        syms = core.binance_coins(include_delisted=True)
+        print(f"Binance: {len(syms)} coins (including delisted ones), up to 1000 days each")
+        syms = ["BTC"] + [x for x in syms if x != "BTC"][:n_coins - 1]
+        coins = [{"id": x} for x in syms]
+
+        def get(i, sym):
+            # Cached ~20h, so a daily retrain always learns from fresh prices.
+            return core.binance_history(sym, max_age_h=20)
     else:
         print(f"Getting the top {n_coins} coins from CoinGecko...")
         coins = core.top_coins(n_coins)
@@ -57,8 +71,10 @@ def load_dataset(n_coins: int, demo: bool) -> pd.DataFrame:
     frames = []
     for i, c in enumerate(coins):
         try:
-            df = btc if c["id"] == "bitcoin" else get(i, c["id"])
+            df = btc if c["id"] in ("bitcoin", "BTC") else get(i, c["id"])
+            listed = df.attrs.get("listed")
             df = df[(df["close"] > 0) & (df["volume"] > 0)]
+            df.attrs["listed"] = listed
             if len(df) < 120:  # too new to learn from
                 continue
             feat = core.add_labels(core.build_features(df, btc))
@@ -97,12 +113,19 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--coins", type=int, default=1000)
     ap.add_argument("--demo", action="store_true")
+    ap.add_argument("--source", choices=["binance", "coingecko"], default="binance")
     args = ap.parse_args()
+    core.OFFLINE = args.demo
 
-    data = load_dataset(args.coins, args.demo)
+    data = load_dataset(args.coins, args.demo, args.source)
     labeled = data.dropna(subset=["fwd_ret"])
     labeled = labeled[labeled["fwd_ret"].abs() > 1e-9]
     cols = core.feature_columns(labeled)
+    # Skip inputs that are (almost) empty - e.g. a data source that was down today.
+    empty = [c for c in cols if labeled[c].notna().mean() < 0.05]
+    if empty:
+        print(f"Not using (no data this time): {', '.join(empty)}")
+    cols = [c for c in cols if c not in empty]
     n_coins = labeled["coin"].nunique()
     print(f"\nDataset: {len(labeled):,} coin-days from {n_coins} coins, {len(cols)} inputs each")
 
@@ -188,6 +211,8 @@ def main():
         "demo_data": args.demo,
         "coins": n_coins,
         "coin_days": int(len(labeled)),
+        "data_source": "demo" if args.demo else args.source,
+        "inputs": cols,
         "exam": exam,
         "strategy_backtest_test_period": bt_test,
         "strategy_weights": weights,

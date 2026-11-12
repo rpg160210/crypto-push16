@@ -86,21 +86,83 @@ def _binance_get(path, params=None):
     raise RuntimeError("Binance rate limit")
 
 
-def binance_coins() -> list[str]:
-    """Every coin currently trading against USDT on Binance (stablecoins removed)."""
+def _is_junk(base: str) -> bool:
+    """Stablecoins, fiat, and old leveraged tokens (BTCUP, ETHBEAR...) - not real coins."""
+    b = base.upper()
+    return (base.lower() in BINANCE_SKIP or b.endswith(("DOWN", "BULL", "BEAR"))
+            or (b.endswith("UP") and len(b) > 4))
+
+
+def binance_coins(include_delisted=False) -> list[str]:
+    """Every coin trading against USDT on Binance (junk removed). For training we also
+    include DELISTED coins - leaving out the ones that died would make the past look
+    rosier than it was (survivorship bias)."""
     info = _binance_get("exchangeInfo", {"permissions": "SPOT"})
     return sorted({s["baseAsset"] for s in info["symbols"]
-                   if s["quoteAsset"] == "USDT" and s["status"] == "TRADING"
-                   and s["baseAsset"].lower() not in BINANCE_SKIP})
+                   if s["quoteAsset"] == "USDT" and not _is_junk(s["baseAsset"])
+                   and (s["status"] == "TRADING" or include_delisted)})
 
 
-def binance_history(symbol: str) -> pd.DataFrame:
-    """365 daily candles for SYMBOL/USDT from Binance: close price + USD volume."""
-    rows = _binance_get("klines", {"symbol": f"{symbol}USDT", "interval": "1d", "limit": 365})
-    return pd.DataFrame({
+def binance_listing_date(symbol: str):
+    """The day SYMBOL/USDT first traded on Binance (cached forever - it never changes)."""
+    f = DATA_DIR / "binance_listing.json"
+    cache = json.loads(f.read_text()) if f.exists() else {}
+    if symbol not in cache:
+        rows = _binance_get("klines", {"symbol": f"{symbol}USDT", "interval": "1d",
+                                       "startTime": 0, "limit": 1})
+        cache[symbol] = int(rows[0][0]) if rows else None
+        DATA_DIR.mkdir(exist_ok=True)
+        f.write_text(json.dumps(cache))
+    return pd.to_datetime(cache[symbol], unit="ms") if cache[symbol] else None
+
+
+def binance_history(symbol: str, days=1000, max_age_h=0) -> pd.DataFrame:
+    """Up to ~2.7 years of daily candles for SYMBOL/USDT: close, high, low, USD volume,
+    number of trades and aggressive-buyer volume. Free and unlimited."""
+    f = DATA_DIR / "binance" / f"{symbol}.json"
+    if max_age_h and f.exists() and time.time() - f.stat().st_mtime < max_age_h * 3600:
+        rows = json.loads(f.read_text())
+    else:
+        rows = _binance_get("klines", {"symbol": f"{symbol}USDT", "interval": "1d", "limit": days})
+        if max_age_h:
+            f.parent.mkdir(parents=True, exist_ok=True)
+            f.write_text(json.dumps(rows))
+    df = pd.DataFrame({
         "close": [float(k[4]) for k in rows],
+        "high": [float(k[2]) for k in rows],
+        "low": [float(k[3]) for k in rows],
         "volume": [float(k[7]) for k in rows],
+        "trades": [float(k[8]) for k in rows],
+        "taker_buy": [float(k[10]) for k in rows],
     }, index=pd.to_datetime([k[0] for k in rows], unit="ms").rename("date"))
+    try:
+        df.attrs["listed"] = binance_listing_date(symbol)
+    except Exception:
+        pass
+    return df
+
+
+# Market-wide sentiment: Crypto Fear & Greed Index (alternative.me, free, daily since 2018).
+OFFLINE = False  # set by --demo so nothing touches the internet
+_FNG = {}
+
+
+def fear_greed() -> pd.Series | None:
+    if OFFLINE:
+        return None
+    if "s" not in _FNG:
+        try:
+            r = requests.get("https://api.alternative.me/fng/", params={"limit": 0, "format": "json"},
+                             timeout=30)
+            r.raise_for_status()
+            d = r.json()["data"]
+            _FNG["s"] = pd.Series([float(x["value"]) for x in d],
+                                  index=pd.to_datetime([int(x["timestamp"]) for x in d], unit="s")
+                                  .normalize()).sort_index()
+        except Exception as e:
+            print(f"  Fear & Greed index unavailable ({type(e).__name__})")
+            _FNG["s"] = None
+    return _FNG["s"]
 
 
 def fake_history(seed: int, days=365) -> pd.DataFrame:
@@ -118,7 +180,16 @@ def fake_history(seed: int, days=365) -> pd.DataFrame:
     close = 10 ** rng.uniform(-3, 4) * np.exp(np.cumsum(rets))
     volume = close * 10 ** rng.uniform(5, 9) * np.exp(rng.normal(0, 0.4, days) + np.abs(rets) * 8)
     idx = pd.date_range(end=pd.Timestamp.today().normalize(), periods=days)
-    return pd.DataFrame({"close": close, "volume": volume}, index=idx)
+    rets = np.array(rets)
+    spread = np.abs(rng.normal(0, vol, days)) + np.abs(rets)
+    df = pd.DataFrame({"close": close, "volume": volume,
+                       "high": close * (1 + spread * rng.uniform(0.2, 1, days)),
+                       "low": close * (1 - spread * rng.uniform(0.2, 1, days)),
+                       "trades": volume / close * rng.uniform(0.5, 2) / 50,
+                       "taker_buy": volume * np.clip(0.5 + rets * 2 + rng.normal(0, 0.03, days), 0.05, 0.95)},
+                      index=idx)
+    df.attrs["listed"] = idx[0] - pd.Timedelta(days=int(rng.integers(0, 1500)))
+    return df
 
 
 # ------------------------------------------------------------- strategies ---
@@ -173,6 +244,38 @@ def build_features(df: pd.DataFrame, btc: pd.DataFrame | None = None) -> pd.Data
         b = btc["close"].reindex(df.index).ffill()
         f["btc_ret_30d"] = b.pct_change(30)
         f["btc_trend"] = ema(b, 20) / ema(b, 50) - 1
+        f["vs_btc_30d"] = f["ret_30d"] - f["btc_ret_30d"]  # beating or lagging the market?
+
+    # --- extra data (NaN when a source doesn't have it; the model copes) ---
+    nan = pd.Series(np.nan, index=df.index)
+    f["ret_90d"] = c.pct_change(90)
+    f["drawdown_365d"] = c / c.rolling(365, min_periods=60).max() - 1
+    if {"high", "low"} <= set(df.columns):
+        h, l = df["high"], df["low"]
+        tr = pd.concat([h - l, (h - c.shift()).abs(), (l - c.shift()).abs()], axis=1).max(axis=1)
+        f["atr_pct"] = tr.rolling(14).mean() / c                      # true daily volatility
+        f["close_in_range"] = ((c - l) / (h - l).replace(0, np.nan)).rolling(3).mean()  # closing strong/weak
+    else:
+        f["atr_pct"] = f["close_in_range"] = nan
+    if "taker_buy" in df.columns:
+        tb = df["taker_buy"] / df["volume"].replace(0, np.nan)          # aggressive buyers' share
+        f["taker_buy_7d"] = tb.rolling(7).mean()
+        f["taker_buy_shift"] = f["taker_buy_7d"] - tb.rolling(30).mean()
+    else:
+        f["taker_buy_7d"] = f["taker_buy_shift"] = nan
+    f["trades_ratio"] = (df["trades"].rolling(7).mean() / df["trades"].rolling(30).mean()
+                         if "trades" in df.columns else nan)
+    listed = df.attrs.get("listed")
+    f["coin_age_days"] = (pd.Series(np.clip((df.index - listed).days, 0, 2000), index=df.index,
+                                    dtype=float) if listed is not None else nan)
+    fng = fear_greed()
+    if fng is not None:
+        g = fng.reindex(df.index.normalize()).ffill()
+        g.index = df.index
+        f["fear_greed"] = g
+        f["fear_greed_7d_change"] = g - g.shift(7)
+    else:
+        f["fear_greed"] = f["fear_greed_7d_change"] = nan
 
     s = pd.DataFrame(index=df.index)
     s["trend_following"] = np.sign(f["ema20_vs_50"])

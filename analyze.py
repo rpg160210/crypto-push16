@@ -38,11 +38,17 @@ def load_bundle():
     return joblib.load(path)
 
 
+class TooNew(Exception):
+    """Coin hasn't traded long enough for the strategies to work (normal, not an error)."""
+
+
 def analyze_coin(coin, bundle, btc, load):
     df = load(coin)
+    listed = df.attrs.get("listed")
     df = df[(df["close"] > 0) & (df["volume"] > 0)]
+    df.attrs["listed"] = listed
     if len(df) < 120:
-        raise ValueError("listed less than ~4 months ago, not enough history")
+        raise TooNew()
     feat = core.build_features(df, btc).replace([np.inf, -np.inf], np.nan)
     today = feat.iloc[[-1]]
     p_up = float(bundle["model"].predict_proba(today[bundle["columns"]])[:, 1][0])
@@ -201,6 +207,7 @@ def main():
     ap.add_argument("--notify", action="store_true", help="push verdict changes to your phone")
     ap.add_argument("--notify-all", action="store_true", help="push every coin, changed or not")
     args = ap.parse_args()
+    core.OFFLINE = args.demo
 
     wanted = args.coins or [c.strip() for c in os.getenv(
         "COINS", "bitcoin,ethereum,solana,ripple,dogecoin").split(",") if c.strip()]
@@ -209,8 +216,8 @@ def main():
     binance_mode = [w.lower() for w in wanted] == ["binance"]
     if args.demo:
         coins = ([f"DEMO{i}" for i in range(60)] if binance_mode else wanted)
-        load = lambda c: core.fake_history(zlib.crc32(c.encode()))
-        btc = core.fake_history(0)
+        load = lambda c: core.fake_history(zlib.crc32(c.encode()), days=1000)
+        btc = core.fake_history(0, days=1000)
     elif binance_mode:
         coins = core.binance_coins()
         print(f"Analyzing all {len(coins)} coins trading on Binance (USDT pairs)...")
@@ -225,10 +232,12 @@ def main():
             time.sleep(2.2 if core.CG_KEY else 6)  # CoinGecko free rate limit
             return df
 
-    results, skipped = [], []
+    results, skipped, too_new = [], [], []
     for coin in coins:
         try:
             results.append(analyze_coin(coin, bundle, btc, load))
+        except TooNew:
+            too_new.append(coin)  # reported once at the end, not as an error
         except Exception as e:
             skipped.append(coin)
             hint = "" if binance_mode else " (is that the CoinGecko ID? e.g. 'ripple' not 'xrp')"
@@ -256,8 +265,11 @@ def main():
         print(f"\nDetailed reports for the {len(detailed)} strongest calls:")
     for r in detailed:
         print_report(r)
+    if too_new:
+        print(f"\n{len(too_new)} coins are too new to analyze yet (need ~4 months of trading), "
+              f"they'll be added automatically later: {', '.join(too_new)}")
     if skipped:
-        print(f"\nSkipped {len(skipped)} coins: {', '.join(skipped)}")
+        print(f"\n!! {len(skipped)} coins failed with an error: {', '.join(skipped)}")
 
     if bundle.get("demo") or args.demo:
         print("\n!! DEMO MODE - fake data. Do not use for real decisions.")
@@ -274,7 +286,7 @@ def main():
                 if args.notify_all or state.get(r["coin"]) != r["verdict"]:
                     push_detail(r)
         state = {r["coin"]: r["verdict"] for r in results} | {
-            c: v for c, v in state.items() if c in skipped}
+            c: v for c, v in state.items() if c in skipped or c in too_new}
         if not args.demo:
             STATE_FILE.write_text(json.dumps(state, indent=2))
 
