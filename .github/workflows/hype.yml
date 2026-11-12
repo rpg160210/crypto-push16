@@ -1,0 +1,28 @@
+name: hype
+on:
+  schedule:
+    - cron: "47 */2 * * *"  # every 2 hours
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  hype:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - run: python hype.py --notify
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
+      - run: |
+          git config user.name "analyst-bot"
+          git config user.email "analyst-bot@users.noreply.github.com"
+          git add hype_history.json
+          if ! git diff --cached --quiet; then
+            git commit -m "update hype history"
+            git pull --rebase
+            git push
+          fi
