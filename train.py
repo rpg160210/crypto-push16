@@ -67,7 +67,7 @@ def load_dataset(n_coins: int, demo: bool, source: str = "binance") -> pd.DataFr
                 time.sleep(2.2 if core.CG_KEY else 6)  # respect the free rate limit
             return df
 
-    btc = get(0, "bitcoin")
+    btc = get(0, "BTC" if (source == "binance" and not demo) else "bitcoin")
     frames = []
     for i, c in enumerate(coins):
         try:
