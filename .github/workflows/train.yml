@@ -1,10 +1,13 @@
 name: train
 on:
   schedule:
-    - cron: "41 3 * * 0"   # every Sunday - retrain on fresh data
+    - cron: "41 3 * * 0"   # every Sunday (backup schedule)
   workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  group: train
+  cancel-in-progress: false
 jobs:
   train:
     runs-on: ubuntu-latest
@@ -26,6 +29,8 @@ jobs:
           git config user.name "analyst-bot"
           git config user.email "analyst-bot@users.noreply.github.com"
           git add model.joblib training_report.json
-          git commit -m "retrain model"
-          git pull --rebase
-          git push
+          if ! git diff --cached --quiet; then
+            git commit -m "retrain model"
+            git pull --rebase
+            git push
+          fi
