@@ -31,6 +31,7 @@ import random
 import re
 import sys
 import time
+import zlib
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 
@@ -38,6 +39,7 @@ import numpy as np
 import pandas as pd
 import requests
 
+import analyze
 import core
 
 HISTORY_FILE = core.ROOT / "hype_history.json"
@@ -253,6 +255,58 @@ OPINION = {
 }
 
 
+CALLS = {
+    "SPECULATIVE BUY": "Buzz is building early AND the chart agrees. This is the best setup hype "
+                       "trading offers - still a gamble: tiny size, stop loss ~15-20% below entry.",
+    "MOMENTUM BUY": "Hype and the chart both point up, but you're not early. Can keep running; "
+                    "take profits on the way up and don't marry it.",
+    "WATCH": "People are talking but the chart hasn't confirmed. Wait for the strategies to flip "
+             "to BUY before touching it.",
+    "DON'T CHASE": "It already pumped. If you hold it, consider taking profits. If you don't, "
+                   "this is where late buyers get stuck.",
+    "AVOID": "Buzz without price support - sellers are in control. Classic setup for "
+             "early holders dumping on new buyers.",
+    "FADING - AVOID": "The hype is dying. Faded hype rarely comes back quickly.",
+    "GAMBLE": "Too new for chart analysis. Pure hype with no track record - only money you'd "
+              "be fine losing completely.",
+}
+
+
+def combine(stage, chart_verdict):
+    """Merge the hype stage with the chart verdict into one call."""
+    if stage == "FADING":
+        call = "FADING - AVOID"
+    elif chart_verdict is None:
+        call = "GAMBLE"
+    else:
+        bull = chart_verdict in ("BUY", "STRONG BUY")
+        bear = chart_verdict in ("SELL", "STRONG SELL")
+        if stage == "LATE":
+            call = "AVOID" if bear else "DON'T CHASE"
+        elif bear:
+            call = "AVOID"
+        elif bull:
+            call = "SPECULATIVE BUY" if stage == "EARLY" else "MOMENTUM BUY"
+        else:
+            call = "WATCH"
+    return call, CALLS[call]
+
+
+def load_chart_model(demo):
+    """The trained chart model from train.py (+ Bitcoin history it needs)."""
+    path = core.ROOT / "model.joblib"
+    if not path.exists():
+        print("(No model.joblib yet - run train first to get chart analysis on hyped coins.)")
+        return None, None
+    import joblib
+    try:
+        btc = core.fake_history(0) if demo else core.binance_history("BTC")
+    except Exception as e:
+        print(f"  couldn't load Bitcoin history for chart analysis: {e}", file=sys.stderr)
+        return None, None
+    return joblib.load(path), btc
+
+
 def fmt_price(p):
     return f"${p:,.2f}" if p >= 1 else f"${p:.6f}"
 
@@ -264,6 +318,7 @@ def main():
     ap.add_argument("--notify", action="store_true", help="push the top 5 when it changes")
     ap.add_argument("--notify-all", action="store_true", help="push the top 5 every run")
     ap.add_argument("--top", type=int, default=15)
+    ap.add_argument("--analyze", type=int, default=8, help="how many hyped coins get chart analysis")
     args = ap.parse_args()
 
     history = json.loads(HISTORY_FILE.read_text()) if HISTORY_FILE.exists() else {"runs": []}
@@ -326,33 +381,64 @@ def main():
         print("\n(The 'vs avg' column fills in after a few runs - the bot is still learning "
               "what normal buzz looks like for each coin.)")
 
-    for r in top[:5]:
-        k7, k30 = core.risk_table(r["close"], 7), core.risk_table(r["close"], 30)
-        r["risk"] = {"7d": k7, "30d": k30}
-        print(f"\n--- {r['coin']}  {fmt_price(r['price'])}  HYPE {r['hype_score']}/100  [{r['stage']}] ---")
-        print(f"Why: {r['points']}")
-        print(OPINION[r["stage"]])
-        print(f"Risk (simulated from its own past swings): 7d down >10%: {k7['chance_down_10']}% | "
-              f"30d down >25%: {k30['chance_down_25']}% | 30d up >25%: {k30['chance_up_25']}% | "
-              f"bad case 30d: {k30['worst_5pct']:+}%")
+    # ---- Hype + chart: run the full chart analysis on the hyped coins ----
+    hot = [r for r in top if r["stage"] != "MILD"][:args.analyze]
+    bundle, btc = load_chart_model(args.demo)
+    print(f"\n=== HYPE + CHART ANALYSIS (top {len(hot)} hyped coins) ===")
+    for r in hot:
+        chart = None
+        if bundle:
+            try:
+                hist = (core.fake_history(zlib.crc32(r["coin"].encode())) if args.demo
+                        else core.binance_history(r["coin"]))
+                chart = analyze.analyze_coin(r["coin"], bundle, btc, lambda _: hist)
+            except analyze.TooNew:
+                pass
+            except Exception as e:
+                print(f"  chart analysis failed for {r['coin']}: {e}", file=sys.stderr)
+        r["call"], why = combine(r["stage"], chart["verdict"] if chart else None)
+        if not bundle and r["call"] == "GAMBLE":
+            why = "No chart model yet (run train first), so this is judged on hype alone - treat it as a gamble."
+        r["chart_verdict"] = chart["verdict"] if chart else "n/a"
+        header = (f"\n{'#' * 64}\n{r['coin']}  HYPE {r['hype_score']}/100 [{r['stage']}]  +  "
+                  f"CHART {r['chart_verdict']}  =>  {r['call']}\n{'#' * 64}")
+        print(header)
+        print(f"Hype: {r['mentions_24h']} posts in 24h"
+              f"{', trending #' + str(r['trending_rank']) if r['trending_rank'] else ''}"
+              f", volume {r['volume_spike']}x normal, 24h {r['change_24h']:+}%, 7d {r['change_7d']:+}%")
+        print(f"Call: {why}")
+        if chart:
+            chart["opinion"] = analyze.rule_opinion(chart)
+            chart["biggest_risk"] = ""
+            analyze.print_report(chart)
+            r["risk_30d"] = chart["risk_30d"]
+        else:
+            k7, k30 = core.risk_table(r["close"], 7), core.risk_table(r["close"], 30)
+            r["risk_30d"] = k30
+            print(f"No full chart analysis ({'too new - under ~4 months of trading' if bundle else 'no trained model yet'}).")
+            print(f"Risk from its short history: 7d down >10%: {k7['chance_down_10']}% | "
+                  f"30d down >25%: {k30['chance_down_25']}% | 30d up >25%: {k30['chance_up_25']}% | "
+                  f"bad case 30d: {k30['worst_5pct']:+}%")
 
     print("\nHype is not a strategy. Most coins that trend on social media are lower a month later. "
           "Not financial advice.")
     if args.demo:
         print("!! DEMO MODE - fake data.")
 
-    if (args.notify or args.notify_all) and top:
-        top5 = [r["coin"] for r in top[:5]]
-        if args.notify_all or top5 != history.get("last_top5"):
+    if (args.notify or args.notify_all) and hot:
+        snapshot = [f"{r['coin']}:{r['call']}" for r in hot[:5]]
+        if args.notify_all or snapshot != history.get("last_calls"):
             body = "\n".join(
-                f"{i}. {r['coin']} {r['hype_score']}/100 {r['stage']} | {r['mentions_24h']} mentions"
-                f"{' | trending #' + str(r['trending_rank']) if r['trending_rank'] else ''}"
-                f" | 24h {r['change_24h']:+}%" for i, r in enumerate(top[:5], 1))
-            early = [r["coin"] for r in top[:5] if r["stage"] == "EARLY"]
-            if early:
-                body += f"\n\nEarly-stage: {', '.join(early)}. Late = already pumped, be careful."
-            core.notify("Hype radar: " + ", ".join(top5), body, tags="fire")
-        history["last_top5"] = top5
+                f"{i}. {r['coin']} => {r['call']}\n   hype {r['hype_score']}/100 {r['stage']}, "
+                f"chart {r['chart_verdict']}, 24h {r['change_24h']:+}%, "
+                f"30d -25% risk {r['risk_30d']['chance_down_25']}%"
+                for i, r in enumerate(hot[:5], 1))
+            counts = {}
+            for r in hot[:5]:
+                counts[r["call"]] = counts.get(r["call"], 0) + 1
+            title = "Hype radar: " + ", ".join(f"{n} {c.lower()}" for c, n in counts.items())
+            core.notify(title, body, tags="fire")
+        history["last_calls"] = snapshot
 
     if not args.demo:
         history["runs"].append({"time": int(time.time()), "mentions": mentions,
