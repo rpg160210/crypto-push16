@@ -1,96 +1,96 @@
 {
-  "trained_at": "2026-11-10T22:44+00:00",
+  "trained_at": "2026-11-12T11:19+00:00",
   "demo_data": false,
-  "coins": 878,
-  "coin_days": 248295,
+  "coins": 875,
+  "coin_days": 247486,
   "exam": {
     "model": "logistic_regression",
-    "test_period": "2026-08-19 to 2026-11-03",
-    "test_rows": 65121,
-    "accuracy": 56.4,
-    "accuracy_if_you_always_guessed_the_majority": 56.3,
-    "auc": 0.5017,
+    "test_period": "2026-08-20 to 2026-11-05",
+    "test_rows": 64153,
+    "accuracy": 56.8,
+    "accuracy_if_you_always_guessed_the_majority": 56.8,
+    "auc": 0.4926,
     "confidence_check": [
       {
         "model_said": "0%-35% chance up",
-        "times": 13827,
-        "actually_went_up": 44.1,
-        "avg_7d_return": 2.27
+        "times": 13439,
+        "actually_went_up": 44.3,
+        "avg_7d_return": 2.36
       },
       {
         "model_said": "35%-45% chance up",
-        "times": 48452,
-        "actually_went_up": 43.1,
-        "avg_7d_return": 0.99
+        "times": 48014,
+        "actually_went_up": 42.6,
+        "avg_7d_return": 0.75
       },
       {
         "model_said": "45%-55% chance up",
-        "times": 2814,
-        "actually_went_up": 51.1,
-        "avg_7d_return": 1.54
+        "times": 2678,
+        "actually_went_up": 48.6,
+        "avg_7d_return": 1.15
       }
     ],
     "model_trusted": false
   },
   "strategy_backtest_test_period": {
     "trend_following": {
-      "signals": 65121,
-      "win_rate": 48.9,
-      "avg_return_per_signal": 0.18,
-      "median_return_per_signal": -0.02
+      "signals": 64153,
+      "win_rate": 49.2,
+      "avg_return_per_signal": 0.32,
+      "median_return_per_signal": -0.01
     },
     "momentum": {
-      "signals": 42225,
-      "win_rate": 53.4,
-      "avg_return_per_signal": 1.58,
-      "median_return_per_signal": 0.14
+      "signals": 41593,
+      "win_rate": 53.8,
+      "avg_return_per_signal": 1.66,
+      "median_return_per_signal": 0.17
     },
     "rsi_reversion": {
-      "signals": 7036,
-      "win_rate": 48.8,
-      "avg_return_per_signal": -0.79,
-      "median_return_per_signal": -0.05
+      "signals": 6887,
+      "win_rate": 48.3,
+      "avg_return_per_signal": -0.98,
+      "median_return_per_signal": -0.08
     },
     "macd": {
-      "signals": 65121,
-      "win_rate": 53.8,
-      "avg_return_per_signal": 1.11,
+      "signals": 64153,
+      "win_rate": 53.9,
+      "avg_return_per_signal": 1.04,
       "median_return_per_signal": 0.17
     },
     "bollinger_reversion": {
-      "signals": 7792,
-      "win_rate": 49.2,
-      "avg_return_per_signal": -1.55,
-      "median_return_per_signal": -0.02
+      "signals": 7661,
+      "win_rate": 48.9,
+      "avg_return_per_signal": -1.39,
+      "median_return_per_signal": -0.04
     },
     "turtle_breakout": {
-      "signals": 15966,
-      "win_rate": 55.8,
-      "avg_return_per_signal": 1.53,
-      "median_return_per_signal": 0.65
+      "signals": 15695,
+      "win_rate": 56.2,
+      "avg_return_per_signal": 1.63,
+      "median_return_per_signal": 0.74
     },
     "volume_breakout": {
-      "signals": 6466,
+      "signals": 6392,
       "win_rate": 43.4,
-      "avg_return_per_signal": 0.11,
-      "median_return_per_signal": -1.55
+      "avg_return_per_signal": 0.02,
+      "median_return_per_signal": -1.54
     },
     "dip_in_uptrend": {
-      "signals": 22,
-      "win_rate": 27.3,
-      "avg_return_per_signal": -0.29,
-      "median_return_per_signal": -0.58
+      "signals": 23,
+      "win_rate": 26.1,
+      "avg_return_per_signal": -1.08,
+      "median_return_per_signal": -0.63
     }
   },
   "strategy_weights": {
     "trend_following": 0.0,
-    "momentum": 0.368,
+    "momentum": 0.377,
     "rsi_reversion": 0.0,
-    "macd": 0.26,
+    "macd": 0.237,
     "bollinger_reversion": 0.0,
-    "turtle_breakout": 0.372,
+    "turtle_breakout": 0.387,
     "volume_breakout": 0.0,
     "dip_in_uptrend": 0.0
   },
-  "buy_and_hold_avg_7d_return_test": 1.32
+  "buy_and_hold_avg_7d_return_test": 1.15
 }
