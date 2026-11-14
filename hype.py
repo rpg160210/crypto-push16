@@ -401,6 +401,7 @@ def main():
         if not bundle and r["call"] == "GAMBLE":
             why = "No chart model yet (run train first), so this is judged on hype alone - treat it as a gamble."
         r["chart_verdict"] = chart["verdict"] if chart else "n/a"
+        r["features"] = chart["features"] if chart else None
         header = (f"\n{'#' * 64}\n{r['coin']}  HYPE {r['hype_score']}/100 [{r['stage']}]  +  "
                   f"CHART {r['chart_verdict']}  =>  {r['call']}\n{'#' * 64}")
         print(header)
@@ -426,6 +427,11 @@ def main():
     if args.demo:
         print("!! DEMO MODE - fake data.")
 
+    # Remember buy/avoid calls so training can check later whether they were right.
+    core.log_calls("hype", [{"coin": r["coin"], "call": r["call"], "price": r["price"],
+                             "source": "binance", "features": r["features"]} for r in hot],
+                   demo=args.demo)
+
     if (args.notify or args.notify_all) and hot:
         snapshot = [f"{r['coin']}:{r['call']}" for r in hot[:5]]
         if args.notify_all or snapshot != history.get("last_calls"):
@@ -433,6 +439,7 @@ def main():
                 f"{i}. {r['coin']} => {r['call']}\n   hype {r['hype_score']}/100 {r['stage']}, "
                 f"chart {r['chart_verdict']}, 24h {r['change_24h']:+}%, "
                 f"30d -25% risk {r['risk_30d']['chance_down_25']}%"
+                + (f"\n   {core.track_record('hype', r['call'])}" if core.track_record('hype', r['call']) else "")
                 for i, r in enumerate(hot[:5], 1))
             counts = {}
             for r in hot[:5]:

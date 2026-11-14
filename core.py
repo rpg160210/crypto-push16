@@ -353,6 +353,57 @@ def risk_table(close: pd.Series, days: int, p_up_7d=None) -> dict:
     }
 
 
+# -------------------------------------------------------- call log (memory) ---
+# Every call the bot makes is saved so training can later check whether it was right.
+# Each writer has its own file (analyze / hype) so the GitHub jobs never edit the same file.
+CALL_LOGS = {"analyze": ROOT / "calls_analyze.json", "hype": ROOT / "calls_hype.json"}
+BUY_CALLS = {"STRONG BUY", "BUY", "SPECULATIVE BUY", "MOMENTUM BUY"}
+SELL_CALLS = {"STRONG SELL", "SELL", "AVOID", "FADING - AVOID", "DON'T CHASE"}
+REVIEW_DAYS = HORIZON  # a call is judged on the price 7 days later
+
+
+def snapshot(row: pd.Series) -> dict:
+    """The chart's numbers at the moment of a call (so training can learn from it later)."""
+    return {k: (None if pd.isna(v) else float(v)) for k, v in row.items() if k != "close"}
+
+
+def log_calls(kind: str, calls: list[dict], demo=False):
+    """Append calls ({coin, call, price, source, features}). The same call for the same coin
+    is only logged again after 24h, so hourly runs don't flood the log."""
+    if demo:
+        return
+    f = CALL_LOGS[kind]
+    log = json.loads(f.read_text()) if f.exists() else []
+    now = int(time.time() * 1000)
+    last = {}
+    for c in log:
+        last[c["coin"]] = c
+    for c in calls:
+        if c["call"] not in BUY_CALLS | SELL_CALLS:
+            continue
+        prev = last.get(c["coin"])
+        if prev and prev["call"] == c["call"] and now - prev["time"] < 24 * 3_600_000:
+            continue
+        entry = {"time": now, **c}
+        log.append(entry)
+        last[c["coin"]] = entry
+    log = [c for c in log if c["time"] > now - 90 * 86_400_000]  # keep 90 days
+    f.write_text(json.dumps(log))
+
+
+def track_record(kind: str, call: str) -> str:
+    """'My record on STRONG BUY: 9 of 14 right (avg +3.1% in 7d)' from the last training."""
+    try:
+        rep = json.loads((ROOT / "training_report.json").read_text())
+        s = rep["call_review"]["by_call"][f"{kind}:{call}"]
+    except Exception:
+        return ""
+    if s["calls"] < 3:
+        return ""
+    return (f"My record on {call}: {s['right']} of {s['calls']} right "
+            f"(avg {s['avg_7d_return_pct']:+}% over 7 days)")
+
+
 # ---------------------------------------------------------- notifications ---
 def notify(title, message, priority="default", tags=""):
     topic = os.getenv("NTFY_TOPIC", "")

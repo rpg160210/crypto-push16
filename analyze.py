@@ -91,6 +91,7 @@ def analyze_coin(coin, bundle, btc, load):
                   "change_30d": round(float(f["ret_30d"]) * 100, 1),
                   "daily_volatility": round(float(f["vol_30d"]) * 100, 1),
                   "below_90d_high": round(float(f["drawdown_90d"]) * 100, 1)},
+        "features": core.snapshot(f),
     }
 
 
@@ -130,7 +131,7 @@ def claude_opinions(results):
                   "required": ["coin", "opinion", "biggest_risk"],
                   "properties": {"coin": {"type": "string"}, "opinion": {"type": "string"},
                                  "biggest_risk": {"type": "string"}}}}}}
-    slim = [{k: v for k, v in r.items()} for r in results]
+    slim = [{k: v for k, v in r.items() if k != "features"} for r in results]
     resp = anthropic.Anthropic().beta.messages.create(
         model="claude-opus-5-5",
         max_tokens=16000,
@@ -276,6 +277,12 @@ def main():
     print("\nNot financial advice. The model is right more often than a coin flip in back-tests, "
           "but it is wrong a lot, and crypto can drop more than any simulation shows.")
 
+    # Remember every buy/sell call so training can check later whether it was right.
+    to_log = [r for r in results if r["verdict"] != "HOLD" and (not big or "STRONG" in r["verdict"])]
+    core.log_calls("analyze", [{"coin": r["coin"], "call": r["verdict"], "price": r["price"],
+                                "source": "binance" if binance_mode else "coingecko",
+                                "features": r["features"]} for r in to_log], demo=args.demo)
+
     if args.notify or args.notify_all:
         state = json.loads(STATE_FILE.read_text()) if STATE_FILE.exists() else {}
         first_run = not state
@@ -299,7 +306,8 @@ def push_detail(r):
         f"{r['verdict']}: {r['coin'].upper()} @ {fmt_price(r['price'])} | risk {r['risk_level']}",
         f"{r['opinion']}\n\n7d: {up(r)} chance up\n"
         f"30d: {k['chance_up_10']}% chance +10% | {k['chance_down_10']}% chance -10% | "
-        f"{k['chance_down_25']}% chance -25%",
+        f"{k['chance_down_25']}% chance -25%"
+        + (f"\n{core.track_record('analyze', r['verdict'])}" if core.track_record('analyze', r['verdict']) else ""),
         priority="high" if "STRONG" in r["verdict"] else "default", tags=tag)
 
 
