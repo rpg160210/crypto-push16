@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-11-15T03:45+00:00",
+  "trained_at": "2026-11-15T04:01+00:00",
   "demo_data": false,
   "coins": 625,
   "coin_days": 457021,
@@ -237,6 +237,13 @@
       "winner": "champion",
       "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
       "coin_days": 457021
+    },
+    {
+      "date": "2026-11-15 04:01",
+      "auc": 0.5091,
+      "winner": "champion",
+      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
+      "coin_days": 457021
     }
   ],
   "leaderboard": [
@@ -282,18 +289,26 @@
     {
       "config": {
         "kind": "logreg",
-        "C": 0.0596,
+        "C": 0.0033,
         "features": "no_market_mood"
       },
-      "val_auc": 0.5136
+      "val_auc": 0.5114
     },
     {
       "config": {
         "kind": "logreg",
-        "C": 0.1704,
-        "features": "all"
+        "C": 0.0492,
+        "features": "no_strategy_signals"
       },
-      "val_auc": 0.5041
+      "val_auc": 0.4989
+    },
+    {
+      "config": {
+        "kind": "logreg",
+        "C": 0.1176,
+        "features": "price_volume_only"
+      },
+      "val_auc": 0.4899
     }
   ],
   "call_review": {
