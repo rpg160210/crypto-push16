@@ -132,6 +132,16 @@ def review_past_calls(demo):
         except Exception as e:
             print(f"  couldn't get prices to review {coin}: {e}")
 
+    btc = None  # benchmark: what just holding Bitcoin did over the same 7 days
+    if due:
+        try:
+            start = min(c["time"] for c in due) - 86_400_000
+            k = core._binance_get("klines", {"symbol": "BTCUSDT", "interval": "1d",
+                                             "startTime": int(start), "limit": 1000})
+            btc = pd.Series([float(r[4]) for r in k], index=pd.to_datetime([r[0] for r in k], unit="ms"))
+        except Exception as e:
+            print(f"  couldn't get Bitcoin prices for the comparison: {e}")
+
     results, rows = [], []
     for c in due:
         series = prices.get((c["source"], c["coin"]))
@@ -142,7 +152,10 @@ def review_past_calls(demo):
         ret = float(series.asof(target)) / c["price"] - 1
         buy = c["call"] in core.BUY_CALLS
         right = ret > 0 if buy else ret < 0
-        results.append({"kind": c["kind"], "call": c["call"], "ret": ret, "right": right})
+        btc_ret = (float(btc.asof(target)) / float(btc.asof(t0.normalize())) - 1
+                   if btc is not None and btc.index.max() >= target else None)
+        results.append({"kind": c["kind"], "call": c["call"], "ret": ret, "right": right,
+                        "buy": buy, "btc_ret": btc_ret})
         if c.get("features"):
             rows.append({**c["features"], "date": t0.normalize(), "coin": c["coin"], "fwd_ret": ret})
 
@@ -153,15 +166,25 @@ def review_past_calls(demo):
         "reviewed": len(results),
         "waiting_for_7_days": len(calls) - len(due),
         "overall_right_pct": round(100 * np.mean([r["right"] for r in results]), 1) if results else None,
-        "by_call": {k: {"calls": len(v), "right": int(sum(r["right"] for r in v)),
-                        "right_pct": round(100 * np.mean([r["right"] for r in v]), 1),
-                        "avg_7d_return_pct": round(100 * float(np.mean([r["ret"] for r in v])), 2)}
-                    for k, v in sorted(by.items())},
+        "by_call": {k: summarize_calls(v) for k, v in sorted(by.items())},
     }
     fb = pd.DataFrame(rows)
     if len(fb):
         fb["fwd_ret"] = fb["fwd_ret"].clip(-0.9, 3)
     return review, fb
+
+
+def summarize_calls(v):
+    out = {"calls": len(v), "right": int(sum(r["right"] for r in v)),
+           "right_pct": round(100 * np.mean([r["right"] for r in v]), 1),
+           "avg_7d_return_pct": round(100 * float(np.mean([r["ret"] for r in v])), 2)}
+    b = [r for r in v if r["btc_ret"] is not None]
+    if b:
+        out["btc_same_weeks_pct"] = round(100 * float(np.mean([r["btc_ret"] for r in b])), 2)
+        if v[0]["buy"]:  # did buying the coin beat just buying Bitcoin?
+            out["beat_btc"] = int(sum(r["ret"] > r["btc_ret"] for r in b))
+            out["beat_btc_of"] = len(b)
+    return out
 
 
 def print_review(review):
@@ -173,14 +196,21 @@ def print_review(review):
           + (f"   overall right: {review['overall_right_pct']}%" if review["overall_right_pct"] is not None else ""))
     for k, v in review["by_call"].items():
         kind, call = k.split(":", 1)
+        extra = ""
+        if "btc_same_weeks_pct" in v:
+            extra = f"   BTC same weeks {v['btc_same_weeks_pct']:+}%"
+            if "beat_btc" in v:
+                extra += f"   beat BTC {v['beat_btc']}/{v['beat_btc_of']}"
         print(f"  {kind:8}{call:16}{v['right']:>4}/{v['calls']:<4} right ({v['right_pct']}%)   "
-              f"avg 7d after the call {v['avg_7d_return_pct']:+}%")
-    print("  (buy calls are right if the price rose; sell/avoid calls if it fell)")
+              f"avg 7d after the call {v['avg_7d_return_pct']:+}%{extra}")
+    print("  (buy calls are right if the price rose; sell/avoid calls if it fell. If buy calls")
+    print("   don't beat BTC, simply holding Bitcoin would have been better.)")
 
 
 def notify_review(review):
     lines = [f"{k.split(':', 1)[1]} ({k.split(':', 1)[0]}): {v['right']}/{v['calls']} right, "
              f"avg {v['avg_7d_return_pct']:+}% in 7d"
+             + (f", beat BTC {v['beat_btc']}/{v['beat_btc_of']}" if "beat_btc" in v else "")
              for k, v in sorted(review["by_call"].items(), key=lambda kv: -kv[1]["calls"])[:8]]
     if lines:
         core.notify(f"My track record: {review['overall_right_pct']}% of {review['reviewed']} calls right",

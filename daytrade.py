@@ -14,6 +14,9 @@ How it works
     of them trained on (same champion/challenger system as train.py).
   * It picks the minimum confidence at which trades actually made money after costs.
     If no confidence level made money, it sends NO trade signals.
+  * Money management: every signal says how much to buy (risk RISK_PCT of ACCOUNT_SIZE if the
+    stop-loss hits), the highest price still worth entering, max MAX_OPEN_TRADES at once, and a
+    daily loss limit. A SAFETY SWITCH pauses signals if recent paper trades lose money.
   * Every signal becomes a paper trade in trade_journal.json. Each scan checks how open
     trades ended. When it retrains, its own finished trades count JOURNAL_WEIGHT times
     more than simulated ones - it learns from its own wins and losses.
@@ -49,6 +52,15 @@ TRAIN_HOURS = 3000         # ~4 months of hourly candles per coin
 TRAIN_COINS = int(os.getenv("DAYTRADE_COINS", "150"))  # most-traded coins only (tight spreads)
 SCAN_COINS = 80
 MAX_NEW_TRADES = 3         # per scan
+
+# Money management (set as GitHub variables; these are the defaults)
+ACCOUNT = float(os.getenv("ACCOUNT_SIZE") or 1000)                 # your trading account in $
+RISK = float(os.getenv("RISK_PCT") or 1) / 100                    # max loss per trade, % of account
+MAX_OPEN = int(os.getenv("MAX_OPEN_TRADES") or 3)                 # trades open at the same time
+DAILY_LOSS_LIMIT = float(os.getenv("DAILY_LOSS_LIMIT_PCT") or 3) / 100  # stop for the day after this
+# Safety switch: pause signals if the last KILL_WINDOW paper trades lost money on average
+KILL_WINDOW, KILL_MIN_TRADES = 25, 20
+MAX_CHASE = 0.25           # don't enter if price already moved 25% of the way to take-profit
 MIN_EXAM_TRADES = 100
 
 MODEL_FILE = core.ROOT / "daytrade_model.joblib"
@@ -162,15 +174,69 @@ def load_journal():
     return json.loads(JOURNAL_FILE.read_text()) if JOURNAL_FILE.exists() else {"trades": []}
 
 
-def journal_stats(journal, days=30):
+def position_size(sl_pct: float) -> float:
+    """$ to buy so that hitting the stop-loss loses RISK of the account (capped so
+    MAX_OPEN trades together never exceed the account)."""
+    return round(min(ACCOUNT * RISK / max(sl_pct + COST, 1e-6), ACCOUNT / MAX_OPEN), 2)
+
+
+def pnl(t) -> float:
+    """$ result of a closed paper trade."""
+    return t["net"] * t.get("size", ACCOUNT / MAX_OPEN)
+
+
+def journal_stats(journal, days=30, btc_now=None):
     cutoff = time.time() * 1000 - days * 24 * HOUR_MS
     closed = [t for t in journal["trades"] if t["status"] != "open" and t["opened"] >= cutoff]
     if not closed:
         return None
     nets = [t["net"] for t in closed]
-    return {"trades": len(closed), "win_rate": round(100 * np.mean([n > 0 for n in nets]), 1),
-            "avg_net_pct": round(100 * float(np.mean(nets)), 2),
-            "total_net_pct": round(100 * float(np.sum(nets)), 1), "days": days}
+    out = {"trades": len(closed), "win_rate": round(100 * np.mean([n > 0 for n in nets]), 1),
+           "avg_net_pct": round(100 * float(np.mean(nets)), 2),
+           "account_pct": round(100 * sum(pnl(t) for t in closed) / ACCOUNT, 2), "days": days}
+    first = min((t for t in closed if t.get("btc_entry")), key=lambda t: t["opened"], default=None)
+    if first and btc_now:
+        out["btc_pct"] = round(100 * (btc_now / first["btc_entry"] - 1), 2)  # just holding Bitcoin
+    return out
+
+
+def track_line(st) -> str:
+    if not st:
+        return "No finished paper trades yet."
+    line = (f"Last {st['days']} days: {st['trades']} trades, {st['win_rate']}% won, "
+            f"{st['avg_net_pct']:+}% avg after costs | paper account {st['account_pct']:+}%")
+    if "btc_pct" in st:
+        beat = "BEATING" if st["account_pct"] > st["btc_pct"] else "behind"
+        line += f" vs holding BTC {st['btc_pct']:+}% ({beat})"
+    return line
+
+
+def safety_check(journal, bundle, now_ms):
+    """Safety switch. Pauses new signals when recent paper trades lose money on average;
+    resumes only after a NEW training run finds an edge again. Returns (ok, message_if_changed)."""
+    st = journal.setdefault("safety", {"paused": False, "resumed_at": 0})
+    if st["paused"]:
+        if bundle.get("trained_at", 0) > st["since"] and bundle.get("threshold") is not None:
+            st.update(paused=False, resumed_at=now_ms)
+            return True, ("Safety switch OFF: a new training found an edge again, so signals are back on. "
+                          "Its record starts fresh from now.")
+        return False, None
+    recent = [t for t in journal["trades"] if t["status"] != "open" and t["opened"] >= st["resumed_at"]]
+    recent = sorted(recent, key=lambda t: t["opened"])[-KILL_WINDOW:]
+    if len(recent) >= KILL_MIN_TRADES and np.mean([t["net"] for t in recent]) < 0:
+        avg = 100 * float(np.mean([t["net"] for t in recent]))
+        st.update(paused=True, since=now_ms, reason=f"last {len(recent)} trades averaged {avg:+.2f}%")
+        return False, (f"Safety switch ON: my last {len(recent)} paper trades lost money on average "
+                       f"({avg:+.2f}% per trade). I'm pausing buy signals until a new training "
+                       "finds an edge again. Open trades are still tracked.")
+    return True, None
+
+
+def day_loss_hit(journal, now_ms) -> bool:
+    day = datetime.fromtimestamp(now_ms / 1000, timezone.utc).date()
+    today = [t for t in journal["trades"] if t["status"] != "open" and t.get("closed")
+             and datetime.fromtimestamp(t["closed"] / 1000, timezone.utc).date() == day]
+    return sum(pnl(t) for t in today) <= -DAILY_LOSS_LIMIT * ACCOUNT
 
 
 def resolve_open_trades(journal, demo):
@@ -186,6 +252,7 @@ def resolve_open_trades(journal, demo):
                                 rows["low"] / rows["close"].iloc[0] * t["entry"],
                                 rows["close"] / rows["close"].iloc[0] * t["entry"],
                                 [t["opened"] + (i + 1) * HOUR_MS for i in range(len(rows))]))
+                bars = [b for b in bars if b[3] + HOUR_MS <= now_ms]  # only hours that have passed
             else:
                 k = core._binance_get("klines", {"symbol": f"{t['coin']}USDT", "interval": "1h",
                                                  "startTime": int(t["opened"]) + HOUR_MS,
@@ -365,7 +432,8 @@ def cmd_train(args):
         "winner": winner, "edge": bool(th), "avg_net_pct": stats["avg_net_pct"] if stats else None,
         "journal_trades": int(len(jr))}])[-200:]
     joblib.dump({"model": final, "columns": fc, "config": cfg, "auc": float(auc),
-                 "threshold": th[0] if th else None, "exam_stats": stats, "demo": args.demo},
+                 "threshold": th[0] if th else None, "exam_stats": stats, "demo": args.demo,
+                 "trained_at": int(time.time() * 1000)},
                 MODEL_FILE)
     REPORT_FILE.write_text(json.dumps({
         "trained_at": history[-1]["date"], "demo_data": args.demo, "coins": int(data["coin"].nunique()),
@@ -421,35 +489,64 @@ def cmd_scan(args):
     for r in rows[:12]:
         print(f"{r['coin']:10}{fmt(r['price']):>14}{r['p']:>11.0%}{r['tp_pct']:>+12.1%}{-r['sl_pct']:>+11.1%}")
 
-    open_coins = {t["coin"] for t in journal["trades"] if t["status"] == "open"}
+    btc_now = float(btc["close"].iloc[-1])
+    ok, safety_msg = safety_check(journal, bundle, now_ms)
+    open_trades = [t for t in journal["trades"] if t["status"] == "open"]
+    open_coins = {t["coin"] for t in open_trades}
+    blocked = None
+    if th is None:
+        blocked = "no proven edge in the last training"
+    elif not ok:
+        blocked = f"safety switch is ON ({journal['safety'].get('reason', '')})"
+    elif day_loss_hit(journal, now_ms):
+        blocked = f"daily loss limit hit (-{DAILY_LOSS_LIMIT:.0%} of account) - back tomorrow"
+    elif len(open_trades) >= MAX_OPEN:
+        blocked = f"already {len(open_trades)} trades open (max {MAX_OPEN})"
     new = []
-    if th is not None:
+    if not blocked:
+        room = min(MAX_NEW_TRADES, MAX_OPEN - len(open_trades))
         for r in rows:
-            if len(new) >= MAX_NEW_TRADES:
+            if len(new) >= room:
                 break
             if r["p"] >= th and r["coin"] not in open_coins:
+                size = position_size(r["sl_pct"])
                 t = {"coin": r["coin"], "opened": now_ms, "entry": r["price"],
                      "tp": r["price"] * (1 + r["tp_pct"]), "sl": r["price"] * (1 - r["sl_pct"]),
+                     "max_entry": r["price"] * (1 + MAX_CHASE * r["tp_pct"]),
                      "deadline": now_ms + HOLD_HOURS * HOUR_MS, "prob": round(r["p"], 4),
+                     "size": size, "btc_entry": btc_now,
                      "status": "open", "features": r["features"]}
                 journal["trades"].append(t)
                 new.append((r, t))
 
-    st = journal_stats(journal)
-    track = (f"Its last {st['days']} days: {st['trades']} trades, {st['win_rate']}% won, "
-             f"{st['avg_net_pct']:+}% avg after costs" if st else "No finished paper trades yet.")
+    st = journal_stats(journal, btc_now=btc_now)
+    track = track_line(st)
     print("\n" + track)
+    print(f"Money rules: account ${ACCOUNT:,.0f}, risk {RISK:.1%}/trade, max {MAX_OPEN} open, "
+          f"daily loss limit {DAILY_LOSS_LIMIT:.0%}. Open now: {len(open_trades)}")
+    if safety_msg:
+        print(safety_msg)
+        if args.notify:
+            core.notify("Day-trade safety switch", safety_msg + f"\n\n{track}", priority="high",
+                        tags="octagonal_sign" if not ok else "green_circle")
+    if blocked:
+        print(f"No new signals: {blocked}.")
     for r, t in new:
-        print(f"NEW: BUY {r['coin']} @ {fmt(t['entry'])}  TP {fmt(t['tp'])} ({r['tp_pct']:+.1%})  "
-              f"SL {fmt(t['sl'])} ({-r['sl_pct']:+.1%})  within {HOLD_HOURS}h  win chance {r['p']:.0%}")
+        risk_usd = t["size"] * (r["sl_pct"] + COST)
+        print(f"NEW: BUY {r['coin']} @ {fmt(t['entry'])} (max {fmt(t['max_entry'])})  "
+              f"TP {fmt(t['tp'])} ({r['tp_pct']:+.1%})  SL {fmt(t['sl'])} ({-r['sl_pct']:+.1%})  "
+              f"size ${t['size']:,.0f} (risk ${risk_usd:,.2f})  win chance {r['p']:.0%}")
         if args.notify:
             core.notify(f"DAY TRADE: BUY {r['coin']} @ {fmt(t['entry'])}",
+                        f"Don't buy above: {fmt(t['max_entry'])} (if it's higher, skip it)\n"
                         f"Take-profit: {fmt(t['tp'])} ({r['tp_pct']:+.1%})\n"
                         f"Stop-loss: {fmt(t['sl'])} ({-r['sl_pct']:+.1%})\n"
                         f"Close after {HOLD_HOURS}h if neither hits.\n"
+                        f"Size: ${t['size']:,.0f} -> max loss ${risk_usd:,.2f} "
+                        f"({RISK:.1%} of ${ACCOUNT:,.0f})\n"
                         f"Win chance {r['p']:.0%} (signals start at {th:.0%})\n\n{track}",
                         priority="high", tags="zap")
-    if not new:
+    if not new and not blocked:
         print("No new trade signals this hour.")
 
     # Tell the user when paper trades finish (once each).
@@ -457,7 +554,8 @@ def cmd_scan(args):
         if t["status"] != "open" and not t.get("reported"):
             t["reported"] = True
             if args.notify:
-                core.notify(f"Trade closed: {t['coin']} {t['status'].upper()} {100 * t['net']:+.2f}%",
+                core.notify(f"Trade closed: {t['coin']} {t['status'].upper()} {100 * t['net']:+.2f}% "
+                            f"(${pnl(t):+,.2f})",
                             f"Entry {fmt(t['entry'])} -> exit {fmt(t['exit'])} (after costs)\n{track}",
                             tags="white_check_mark" if t["net"] > 0 else "x")
     journal["trades"] = [t for t in journal["trades"]
