@@ -1,0 +1,134 @@
+{
+  "trained_at": "2026-11-15 17:03",
+  "demo_data": false,
+  "coins": 150,
+  "simulated_trades": 431001,
+  "own_paper_trades_used": 0,
+  "hold_hours": 12,
+  "cost_per_trade_pct": 0.25,
+  "exam": {
+    "auc": 0.4915,
+    "winner": "challenger",
+    "model": "logistic C=0.6067 [price_volume_only]",
+    "signals": null,
+    "take_every_trade_avg_net_pct": -0.432
+  },
+  "own_trades_last_30d": null,
+  "inputs": [
+    "ret_1d",
+    "ret_7d",
+    "ret_30d",
+    "rsi",
+    "macd_hist",
+    "ema20_vs_50",
+    "price_vs_ema50",
+    "boll_z",
+    "donchian_pos",
+    "vol_30d",
+    "vol_ratio",
+    "volume_ratio",
+    "drawdown_90d",
+    "sig_trend_following",
+    "sig_momentum",
+    "sig_rsi_reversion",
+    "sig_macd",
+    "sig_bollinger_reversion",
+    "sig_turtle_breakout",
+    "sig_volume_breakout",
+    "sig_dip_in_uptrend",
+    "hour",
+    "weekday",
+    "ret_4h",
+    "ret_24h",
+    "vs_vwap_24h",
+    "range_1h"
+  ],
+  "history": [
+    {
+      "date": "2026-11-15 17:03",
+      "auc": 0.4915,
+      "winner": "challenger",
+      "edge": false,
+      "avg_net_pct": null,
+      "journal_trades": 0
+    }
+  ],
+  "leaderboard": [
+    {
+      "config": {
+        "kind": "logreg",
+        "C": 0.6067,
+        "features": "price_volume_only"
+      },
+      "val_auc": 0.5405
+    },
+    {
+      "config": {
+        "kind": "logreg",
+        "C": 0.1,
+        "features": "all"
+      },
+      "val_auc": 0.5396
+    },
+    {
+      "config": {
+        "kind": "logreg",
+        "C": 0.0887,
+        "features": "no_market_mood"
+      },
+      "val_auc": 0.5387
+    },
+    {
+      "config": {
+        "kind": "hgb",
+        "learning_rate": 0.0376,
+        "max_leaf_nodes": 48,
+        "min_samples_leaf": 500,
+        "l2": 0.237,
+        "max_iter": 500,
+        "max_features": 0.7,
+        "features": "no_market_mood"
+      },
+      "val_auc": 0.536
+    },
+    {
+      "config": {
+        "kind": "hgb",
+        "learning_rate": 0.0232,
+        "max_leaf_nodes": 24,
+        "min_samples_leaf": 500,
+        "l2": 3.751,
+        "max_iter": 500,
+        "max_features": 0.5,
+        "features": "no_strategy_signals"
+      },
+      "val_auc": 0.5334
+    },
+    {
+      "config": {
+        "kind": "hgb",
+        "learning_rate": 0.04,
+        "max_leaf_nodes": 24,
+        "min_samples_leaf": 200,
+        "l2": 1.0,
+        "max_iter": 300,
+        "max_features": 1.0,
+        "features": "all"
+      },
+      "val_auc": 0.5302
+    },
+    {
+      "config": {
+        "kind": "hgb",
+        "learning_rate": 0.05,
+        "max_leaf_nodes": 8,
+        "min_samples_leaf": 500,
+        "l2": 1.0,
+        "max_iter": 150,
+        "max_features": 1.0,
+        "features": "all"
+      },
+      "val_auc": 0.5213
+    }
+  ]
+}
