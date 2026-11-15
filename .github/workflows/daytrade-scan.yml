@@ -1,0 +1,34 @@
+name: daytrade-scan
+on:
+  schedule:
+    - cron: "3 * * * *"   # every hour (backup schedule)
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: daytrade-scan
+  cancel-in-progress: false
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - run: python daytrade.py scan --notify
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          ACCOUNT_SIZE: ${{ vars.ACCOUNT_SIZE }}
+          RISK_PCT: ${{ vars.RISK_PCT }}
+          MAX_OPEN_TRADES: ${{ vars.MAX_OPEN_TRADES }}
+          DAILY_LOSS_LIMIT_PCT: ${{ vars.DAILY_LOSS_LIMIT_PCT }}
+      - run: |
+          git config user.name "analyst-bot"
+          git config user.email "analyst-bot@users.noreply.github.com"
+          git add trade_journal.json
+          if ! git diff --cached --quiet; then
+            git commit -m "update trade journal"
+            git pull --rebase
+            git push
+          fi
