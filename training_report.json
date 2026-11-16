@@ -1,8 +1,8 @@
 {
-  "trained_at": "2026-11-16T15:46+00:00",
+  "trained_at": "2026-11-16T16:10+00:00",
   "demo_data": false,
   "coins": 625,
-  "coin_days": 457148,
+  "coin_days": 457346,
   "data_source": "binance",
   "inputs": [
     "ret_1d",
@@ -30,101 +30,101 @@
   "exam": {
     "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
     "winner": "champion",
-    "champion_auc": 0.5098,
+    "champion_auc": 0.5092,
     "challenger_auc": 0.5036,
-    "test_period": "2024-09-05 to 2026-11-08",
-    "test_rows": 311168,
-    "accuracy": 53.3,
-    "accuracy_if_you_always_guessed_the_majority": 58.0,
-    "auc": 0.5098,
+    "test_period": "2024-09-06 to 2026-11-09",
+    "test_rows": 311240,
+    "accuracy": 53.4,
+    "accuracy_if_you_always_guessed_the_majority": 58.1,
+    "auc": 0.5092,
     "confidence_check": [
       {
         "model_said": "0%-35% chance up",
-        "times": 37331,
-        "actually_went_up": 39.9,
-        "avg_7d_return": -1.92
+        "times": 37610,
+        "actually_went_up": 40.1,
+        "avg_7d_return": -1.71
       },
       {
         "model_said": "35%-45% chance up",
-        "times": 115317,
-        "actually_went_up": 42.1,
-        "avg_7d_return": -0.61
+        "times": 115563,
+        "actually_went_up": 42.0,
+        "avg_7d_return": -0.66
       },
       {
         "model_said": "45%-55% chance up",
-        "times": 94337,
-        "actually_went_up": 41.5,
-        "avg_7d_return": -0.75
+        "times": 95648,
+        "actually_went_up": 41.3,
+        "avg_7d_return": -0.83
       },
       {
         "model_said": "55%-65% chance up",
-        "times": 43860,
-        "actually_went_up": 43.4,
-        "avg_7d_return": -0.67
+        "times": 42642,
+        "actually_went_up": 43.5,
+        "avg_7d_return": -0.65
       },
       {
         "model_said": "65%-100% chance up",
-        "times": 20323,
-        "actually_went_up": 44.5,
-        "avg_7d_return": -0.41
+        "times": 19777,
+        "actually_went_up": 44.2,
+        "avg_7d_return": -0.49
       }
     ],
     "model_trusted": false
   },
   "strategy_backtest_test_period": {
     "trend_following": {
-      "signals": 311168,
-      "win_rate": 52.4,
-      "avg_return_per_signal": 0.44,
-      "median_return_per_signal": 0.62
+      "signals": 311240,
+      "win_rate": 52.5,
+      "avg_return_per_signal": 0.46,
+      "median_return_per_signal": 0.65
     },
     "momentum": {
-      "signals": 203167,
-      "win_rate": 52.7,
-      "avg_return_per_signal": 0.71,
-      "median_return_per_signal": 0.73
+      "signals": 203355,
+      "win_rate": 52.9,
+      "avg_return_per_signal": 0.73,
+      "median_return_per_signal": 0.75
     },
     "rsi_reversion": {
-      "signals": 26909,
-      "win_rate": 55.9,
-      "avg_return_per_signal": 1.0,
-      "median_return_per_signal": 1.7
+      "signals": 26955,
+      "win_rate": 55.8,
+      "avg_return_per_signal": 0.98,
+      "median_return_per_signal": 1.68
     },
     "macd": {
-      "signals": 311168,
-      "win_rate": 48.3,
-      "avg_return_per_signal": 0.05,
-      "median_return_per_signal": -0.45
+      "signals": 311240,
+      "win_rate": 48.4,
+      "avg_return_per_signal": 0.06,
+      "median_return_per_signal": -0.43
     },
     "bollinger_reversion": {
-      "signals": 32155,
+      "signals": 32162,
       "win_rate": 53.2,
       "avg_return_per_signal": 0.35,
       "median_return_per_signal": 0.87
     },
     "turtle_breakout": {
-      "signals": 72416,
-      "win_rate": 51.2,
-      "avg_return_per_signal": 0.35,
-      "median_return_per_signal": 0.38
+      "signals": 72344,
+      "win_rate": 51.3,
+      "avg_return_per_signal": 0.37,
+      "median_return_per_signal": 0.41
     },
     "volume_breakout": {
-      "signals": 33170,
+      "signals": 33171,
       "win_rate": 45.9,
       "avg_return_per_signal": 0.46,
       "median_return_per_signal": -1.36
     }
   },
   "strategy_weights": {
-    "trend_following": 0.151,
-    "momentum": 0.245,
-    "rsi_reversion": 0.366,
+    "trend_following": 0.156,
+    "momentum": 0.249,
+    "rsi_reversion": 0.353,
     "macd": 0.0,
-    "bollinger_reversion": 0.122,
-    "turtle_breakout": 0.117,
+    "bollinger_reversion": 0.12,
+    "turtle_breakout": 0.122,
     "volume_breakout": 0.0
   },
-  "buy_and_hold_avg_7d_return_test": -0.8,
+  "buy_and_hold_avg_7d_return_test": -0.83,
   "history": [
     {
       "date": "2026-11-15 00:06",
@@ -1238,6 +1238,13 @@
       "winner": "champion",
       "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
       "coin_days": 457148
+    },
+    {
+      "date": "2026-11-16 16:10",
+      "auc": 0.5092,
+      "winner": "champion",
+      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
+      "coin_days": 457346
     }
   ],
   "leaderboard": [
@@ -1252,20 +1259,7 @@
         "max_features": 0.5,
         "features": "no_market_mood"
       },
-      "val_auc": 0.5467
-    },
-    {
-      "config": {
-        "kind": "hgb",
-        "learning_rate": 0.0235,
-        "max_leaf_nodes": 7,
-        "min_samples_leaf": 2000,
-        "l2": 0.534,
-        "max_iter": 200,
-        "max_features": 0.7,
-        "features": "no_market_mood"
-      },
-      "val_auc": 0.5434
+      "val_auc": 0.5465
     },
     {
       "config": {
@@ -1278,15 +1272,49 @@
         "max_features": 1.0,
         "features": "no_market_mood"
       },
-      "val_auc": 0.5429
+      "val_auc": 0.5414
+    },
+    {
+      "config": {
+        "kind": "hgb",
+        "learning_rate": 0.0235,
+        "max_leaf_nodes": 7,
+        "min_samples_leaf": 2000,
+        "l2": 0.534,
+        "max_iter": 200,
+        "max_features": 0.7,
+        "features": "no_market_mood"
+      },
+      "val_auc": 0.5413
+    },
+    {
+      "config": {
+        "kind": "hgb",
+        "learning_rate": 0.0211,
+        "max_leaf_nodes": 15,
+        "min_samples_leaf": 500,
+        "l2": 0.327,
+        "max_iter": 300,
+        "max_features": 1.0,
+        "features": "no_market_mood"
+      },
+      "val_auc": 0.5364
     },
     {
       "config": {
         "kind": "logreg",
-        "C": 0.9868,
-        "features": "no_strategy_signals"
+        "C": 0.1035,
+        "features": "price_volume_only"
       },
-      "val_auc": 0.4996
+      "val_auc": 0.4889
+    },
+    {
+      "config": {
+        "kind": "logreg",
+        "C": 0.0128,
+        "features": "price_volume_only"
+      },
+      "val_auc": 0.4878
     }
   ],
   "call_review": {
