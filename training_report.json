@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-11-17T21:01+00:00",
+  "trained_at": "2026-11-17T21:16+00:00",
   "demo_data": false,
   "coins": 625,
   "coin_days": 457545,
@@ -126,13 +126,6 @@
   },
   "buy_and_hold_avg_7d_return_test": -0.86,
   "history": [
-    {
-      "date": "2026-11-15 18:31",
-      "auc": 0.5091,
-      "winner": "champion",
-      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
-      "coin_days": 457021
-    },
     {
       "date": "2026-11-15 18:46",
       "auc": 0.5091,
@@ -1525,6 +1518,13 @@
       "winner": "champion",
       "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
       "coin_days": 457545
+    },
+    {
+      "date": "2026-11-17 21:16",
+      "auc": 0.5091,
+      "winner": "champion",
+      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
+      "coin_days": 457545
     }
   ],
   "leaderboard": [
@@ -1570,44 +1570,36 @@
     {
       "config": {
         "kind": "hgb",
-        "learning_rate": 0.0201,
-        "max_leaf_nodes": 31,
-        "min_samples_leaf": 200,
-        "l2": 0.633,
+        "learning_rate": 0.0623,
+        "max_leaf_nodes": 15,
+        "min_samples_leaf": 100,
+        "l2": 0.896,
         "max_iter": 100,
-        "max_features": 1.0,
-        "features": "price_volume_only"
+        "max_features": 0.5,
+        "features": "no_market_mood"
       },
-      "val_auc": 0.5141
+      "val_auc": 0.5343
     },
     {
       "config": {
         "kind": "hgb",
-        "learning_rate": 0.1263,
-        "max_leaf_nodes": 15,
-        "min_samples_leaf": 100,
-        "l2": 1.357,
-        "max_iter": 200,
-        "max_features": 0.7,
-        "features": "price_volume_only"
+        "learning_rate": 0.0804,
+        "max_leaf_nodes": 24,
+        "min_samples_leaf": 1000,
+        "l2": 7.393,
+        "max_iter": 500,
+        "max_features": 0.5,
+        "features": "no_market_mood"
       },
-      "val_auc": 0.5045
+      "val_auc": 0.4988
     },
     {
       "config": {
         "kind": "logreg",
-        "C": 0.0517,
-        "features": "no_strategy_signals"
-      },
-      "val_auc": 0.4991
-    },
-    {
-      "config": {
-        "kind": "logreg",
-        "C": 0.0356,
+        "C": 0.0183,
         "features": "price_volume_only"
       },
-      "val_auc": 0.4883
+      "val_auc": 0.4879
     }
   ],
   "call_review": {
