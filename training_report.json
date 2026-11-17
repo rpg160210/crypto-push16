@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-11-17T05:46+00:00",
+  "trained_at": "2026-11-17T06:01+00:00",
   "demo_data": false,
   "coins": 625,
   "coin_days": 457346,
@@ -126,13 +126,6 @@
   },
   "buy_and_hold_avg_7d_return_test": -0.83,
   "history": [
-    {
-      "date": "2026-11-15 03:01",
-      "auc": 0.5091,
-      "winner": "champion",
-      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
-      "coin_days": 457021
-    },
     {
       "date": "2026-11-15 03:16",
       "auc": 0.5091,
@@ -1525,6 +1518,13 @@
       "winner": "champion",
       "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
       "coin_days": 457346
+    },
+    {
+      "date": "2026-11-17 06:01",
+      "auc": 0.5092,
+      "winner": "champion",
+      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
+      "coin_days": 457346
     }
   ],
   "leaderboard": [
@@ -1569,32 +1569,35 @@
     },
     {
       "config": {
-        "kind": "hgb",
-        "learning_rate": 0.027,
-        "max_leaf_nodes": 48,
-        "min_samples_leaf": 2000,
-        "l2": 0.748,
-        "max_iter": 200,
-        "max_features": 0.5,
-        "features": "price_volume_only"
-      },
-      "val_auc": 0.5174
-    },
-    {
-      "config": {
         "kind": "logreg",
-        "C": 0.0294,
+        "C": 0.0059,
         "features": "no_market_mood"
       },
-      "val_auc": 0.5129
+      "val_auc": 0.5114
     },
     {
       "config": {
         "kind": "logreg",
-        "C": 0.1058,
+        "C": 1.4332,
+        "features": "all"
+      },
+      "val_auc": 0.5054
+    },
+    {
+      "config": {
+        "kind": "logreg",
+        "C": 0.0122,
         "features": "no_strategy_signals"
       },
-      "val_auc": 0.4998
+      "val_auc": 0.4989
+    },
+    {
+      "config": {
+        "kind": "logreg",
+        "C": 0.0117,
+        "features": "price_volume_only"
+      },
+      "val_auc": 0.4877
     }
   ],
   "call_review": {
