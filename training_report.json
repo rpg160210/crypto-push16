@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-11-19T22:01+00:00",
+  "trained_at": "2026-11-19T22:16+00:00",
   "demo_data": false,
   "coins": 635,
   "coin_days": 458580,
@@ -126,13 +126,6 @@
   },
   "buy_and_hold_avg_7d_return_test": -0.9,
   "history": [
-    {
-      "date": "2026-11-17 19:46",
-      "auc": 0.5091,
-      "winner": "champion",
-      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
-      "coin_days": 457545
-    },
     {
       "date": "2026-11-17 20:01",
       "auc": 0.5091,
@@ -1525,6 +1518,13 @@
       "winner": "champion",
       "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
       "coin_days": 458580
+    },
+    {
+      "date": "2026-11-19 22:16",
+      "auc": 0.508,
+      "winner": "champion",
+      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
+      "coin_days": 458580
     }
   ],
   "leaderboard": [
@@ -1570,36 +1570,36 @@
     {
       "config": {
         "kind": "hgb",
-        "learning_rate": 0.0164,
-        "max_leaf_nodes": 24,
-        "min_samples_leaf": 2000,
-        "l2": 4.129,
+        "learning_rate": 0.0285,
+        "max_leaf_nodes": 15,
+        "min_samples_leaf": 1000,
+        "l2": 0.297,
         "max_iter": 300,
         "max_features": 0.7,
         "features": "no_market_mood"
       },
-      "val_auc": 0.5248
+      "val_auc": 0.5261
     },
     {
       "config": {
         "kind": "logreg",
-        "C": 0.1183,
-        "features": "all"
+        "C": 0.0823,
+        "features": "no_strategy_signals"
       },
-      "val_auc": 0.5075
+      "val_auc": 0.4992
     },
     {
       "config": {
         "kind": "logreg",
-        "C": 0.0066,
-        "features": "all"
+        "C": 0.0194,
+        "features": "no_strategy_signals"
       },
-      "val_auc": 0.5053
+      "val_auc": 0.4987
     }
   ],
   "call_review": {
     "reviewed": 0,
-    "waiting_for_7_days": 267,
+    "waiting_for_7_days": 269,
     "overall_right_pct": null,
     "by_call": {}
   }
