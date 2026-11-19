@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-11-19T18:46+00:00",
+  "trained_at": "2026-11-19T19:01+00:00",
   "demo_data": false,
   "coins": 635,
   "coin_days": 458580,
@@ -126,13 +126,6 @@
   },
   "buy_and_hold_avg_7d_return_test": -0.9,
   "history": [
-    {
-      "date": "2026-11-17 16:31",
-      "auc": 0.5091,
-      "winner": "champion",
-      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
-      "coin_days": 457545
-    },
     {
       "date": "2026-11-17 16:46",
       "auc": 0.5091,
@@ -1525,6 +1518,13 @@
       "winner": "champion",
       "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
       "coin_days": 458580
+    },
+    {
+      "date": "2026-11-19 19:01",
+      "auc": 0.508,
+      "winner": "champion",
+      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
+      "coin_days": 458580
     }
   ],
   "leaderboard": [
@@ -1570,31 +1570,41 @@
     {
       "config": {
         "kind": "hgb",
-        "learning_rate": 0.0258,
-        "max_leaf_nodes": 24,
-        "min_samples_leaf": 2000,
-        "l2": 5.72,
-        "max_iter": 300,
-        "max_features": 0.5,
-        "features": "no_market_mood"
-      },
-      "val_auc": 0.5163
-    },
-    {
-      "config": {
-        "kind": "logreg",
-        "C": 0.0364,
-        "features": "all"
-      },
-      "val_auc": 0.5067
-    },
-    {
-      "config": {
-        "kind": "logreg",
-        "C": 1.5448,
+        "learning_rate": 0.0219,
+        "max_leaf_nodes": 7,
+        "min_samples_leaf": 500,
+        "l2": 2.968,
+        "max_iter": 200,
+        "max_features": 0.7,
         "features": "price_volume_only"
       },
-      "val_auc": 0.4876
+      "val_auc": 0.5334
+    },
+    {
+      "config": {
+        "kind": "hgb",
+        "learning_rate": 0.0445,
+        "max_leaf_nodes": 7,
+        "min_samples_leaf": 1000,
+        "l2": 0.377,
+        "max_iter": 300,
+        "max_features": 0.5,
+        "features": "price_volume_only"
+      },
+      "val_auc": 0.5195
+    },
+    {
+      "config": {
+        "kind": "hgb",
+        "learning_rate": 0.0261,
+        "max_leaf_nodes": 31,
+        "min_samples_leaf": 2000,
+        "l2": 0.566,
+        "max_iter": 200,
+        "max_features": 0.5,
+        "features": "price_volume_only"
+      },
+      "val_auc": 0.5131
     }
   ],
   "call_review": {
