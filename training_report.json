@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-11-20T06:46+00:00",
+  "trained_at": "2026-11-20T07:01+00:00",
   "demo_data": false,
   "coins": 635,
   "coin_days": 458786,
@@ -126,13 +126,6 @@
   },
   "buy_and_hold_avg_7d_return_test": -0.92,
   "history": [
-    {
-      "date": "2026-11-18 04:31",
-      "auc": 0.5091,
-      "winner": "champion",
-      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
-      "coin_days": 457545
-    },
     {
       "date": "2026-11-18 04:46",
       "auc": 0.5091,
@@ -1525,6 +1518,13 @@
       "winner": "champion",
       "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
       "coin_days": 458786
+    },
+    {
+      "date": "2026-11-20 07:01",
+      "auc": 0.5089,
+      "winner": "champion",
+      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
+      "coin_days": 458786
     }
   ],
   "leaderboard": [
@@ -1570,28 +1570,41 @@
     {
       "config": {
         "kind": "hgb",
-        "learning_rate": 0.0261,
-        "max_leaf_nodes": 48,
-        "min_samples_leaf": 100,
-        "l2": 0.417,
-        "max_iter": 200,
+        "learning_rate": 0.0572,
+        "max_leaf_nodes": 7,
+        "min_samples_leaf": 500,
+        "l2": 0.351,
+        "max_iter": 300,
         "max_features": 0.7,
         "features": "no_market_mood"
       },
-      "val_auc": 0.5158
+      "val_auc": 0.5257
     },
     {
       "config": {
         "kind": "hgb",
-        "learning_rate": 0.0323,
+        "learning_rate": 0.0266,
         "max_leaf_nodes": 15,
         "min_samples_leaf": 2000,
-        "l2": 0.228,
-        "max_iter": 500,
-        "max_features": 0.5,
+        "l2": 2.836,
+        "max_iter": 200,
+        "max_features": 1.0,
         "features": "no_market_mood"
       },
-      "val_auc": 0.5071
+      "val_auc": 0.5251
+    },
+    {
+      "config": {
+        "kind": "hgb",
+        "learning_rate": 0.022,
+        "max_leaf_nodes": 31,
+        "min_samples_leaf": 2000,
+        "l2": 0.184,
+        "max_iter": 200,
+        "max_features": 0.7,
+        "features": "price_volume_only"
+      },
+      "val_auc": 0.5156
     }
   ],
   "call_review": {
