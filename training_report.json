@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-11-20T21:46+00:00",
+  "trained_at": "2026-11-20T22:01+00:00",
   "demo_data": false,
   "coins": 635,
   "coin_days": 458788,
@@ -126,13 +126,6 @@
   },
   "buy_and_hold_avg_7d_return_test": -0.93,
   "history": [
-    {
-      "date": "2026-11-18 19:16",
-      "auc": 0.5074,
-      "winner": "champion",
-      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
-      "coin_days": 458372
-    },
     {
       "date": "2026-11-18 19:31",
       "auc": 0.5074,
@@ -1525,6 +1518,13 @@
       "winner": "champion",
       "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
       "coin_days": 458788
+    },
+    {
+      "date": "2026-11-20 22:01",
+      "auc": 0.5089,
+      "winner": "champion",
+      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
+      "coin_days": 458788
     }
   ],
   "leaderboard": [
@@ -1569,24 +1569,42 @@
     },
     {
       "config": {
-        "kind": "logreg",
-        "C": 0.0039,
+        "kind": "hgb",
+        "learning_rate": 0.044,
+        "max_leaf_nodes": 31,
+        "min_samples_leaf": 1000,
+        "l2": 3.575,
+        "max_iter": 100,
+        "max_features": 0.7,
         "features": "no_market_mood"
       },
-      "val_auc": 0.5108
+      "val_auc": 0.5227
+    },
+    {
+      "config": {
+        "kind": "hgb",
+        "learning_rate": 0.0517,
+        "max_leaf_nodes": 7,
+        "min_samples_leaf": 100,
+        "l2": 2.538,
+        "max_iter": 500,
+        "max_features": 1.0,
+        "features": "no_market_mood"
+      },
+      "val_auc": 0.5194
     },
     {
       "config": {
         "kind": "logreg",
-        "C": 0.0854,
-        "features": "all"
+        "C": 0.0936,
+        "features": "price_volume_only"
       },
-      "val_auc": 0.5089
+      "val_auc": 0.4875
     }
   ],
   "call_review": {
     "reviewed": 0,
-    "waiting_for_7_days": 270,
+    "waiting_for_7_days": 271,
     "overall_right_pct": null,
     "by_call": {}
   }
