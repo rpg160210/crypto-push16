@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-11-21T13:31+00:00",
+  "trained_at": "2026-11-21T13:46+00:00",
   "demo_data": false,
   "coins": 635,
   "coin_days": 458788,
@@ -126,13 +126,6 @@
   },
   "buy_and_hold_avg_7d_return_test": -0.93,
   "history": [
-    {
-      "date": "2026-11-19 11:16",
-      "auc": 0.508,
-      "winner": "champion",
-      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
-      "coin_days": 458580
-    },
     {
       "date": "2026-11-19 11:31",
       "auc": 0.508,
@@ -1525,6 +1518,13 @@
       "winner": "champion",
       "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
       "coin_days": 458788
+    },
+    {
+      "date": "2026-11-21 13:46",
+      "auc": 0.5089,
+      "winner": "champion",
+      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
+      "coin_days": 458788
     }
   ],
   "leaderboard": [
@@ -1566,45 +1566,6 @@
         "features": "no_market_mood"
       },
       "val_auc": 0.5386
-    },
-    {
-      "config": {
-        "kind": "hgb",
-        "learning_rate": 0.0503,
-        "max_leaf_nodes": 7,
-        "min_samples_leaf": 2000,
-        "l2": 7.723,
-        "max_iter": 300,
-        "max_features": 1.0,
-        "features": "no_market_mood"
-      },
-      "val_auc": 0.5247
-    },
-    {
-      "config": {
-        "kind": "hgb",
-        "learning_rate": 0.037,
-        "max_leaf_nodes": 24,
-        "min_samples_leaf": 100,
-        "l2": 0.434,
-        "max_iter": 300,
-        "max_features": 1.0,
-        "features": "price_volume_only"
-      },
-      "val_auc": 0.5098
-    },
-    {
-      "config": {
-        "kind": "hgb",
-        "learning_rate": 0.0522,
-        "max_leaf_nodes": 15,
-        "min_samples_leaf": 100,
-        "l2": 0.741,
-        "max_iter": 500,
-        "max_features": 1.0,
-        "features": "price_volume_only"
-      },
-      "val_auc": 0.5063
     }
   ],
   "call_review": {
