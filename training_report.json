@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-11-21T21:01+00:00",
+  "trained_at": "2026-11-21T21:16+00:00",
   "demo_data": false,
   "coins": 635,
   "coin_days": 458992,
@@ -126,13 +126,6 @@
   },
   "buy_and_hold_avg_7d_return_test": -0.93,
   "history": [
-    {
-      "date": "2026-11-19 18:46",
-      "auc": 0.508,
-      "winner": "champion",
-      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
-      "coin_days": 458580
-    },
     {
       "date": "2026-11-19 19:01",
       "auc": 0.508,
@@ -1525,6 +1518,13 @@
       "winner": "champion",
       "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
       "coin_days": 458992
+    },
+    {
+      "date": "2026-11-21 21:16",
+      "auc": 0.5103,
+      "winner": "champion",
+      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
+      "coin_days": 458992
     }
   ],
   "leaderboard": [
@@ -1570,36 +1570,23 @@
     {
       "config": {
         "kind": "hgb",
-        "learning_rate": 0.0159,
-        "max_leaf_nodes": 31,
-        "min_samples_leaf": 500,
-        "l2": 6.047,
-        "max_iter": 200,
-        "max_features": 0.5,
+        "learning_rate": 0.0599,
+        "max_leaf_nodes": 7,
+        "min_samples_leaf": 2000,
+        "l2": 0.912,
+        "max_iter": 300,
+        "max_features": 1.0,
         "features": "no_market_mood"
       },
-      "val_auc": 0.5286
+      "val_auc": 0.5175
     },
     {
       "config": {
         "kind": "logreg",
-        "C": 0.0034,
-        "features": "no_market_mood"
+        "C": 0.0054,
+        "features": "no_strategy_signals"
       },
-      "val_auc": 0.5105
-    },
-    {
-      "config": {
-        "kind": "hgb",
-        "learning_rate": 0.1434,
-        "max_leaf_nodes": 24,
-        "min_samples_leaf": 500,
-        "l2": 0.425,
-        "max_iter": 100,
-        "max_features": 0.7,
-        "features": "no_market_mood"
-      },
-      "val_auc": 0.5069
+      "val_auc": 0.4982
     }
   ],
   "call_review": {
