@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-11-21T00:01+00:00",
+  "trained_at": "2026-11-21T00:16+00:00",
   "demo_data": false,
   "coins": 635,
   "coin_days": 458788,
@@ -126,13 +126,6 @@
   },
   "buy_and_hold_avg_7d_return_test": -0.93,
   "history": [
-    {
-      "date": "2026-11-18 21:31",
-      "auc": 0.5074,
-      "winner": "champion",
-      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
-      "coin_days": 458372
-    },
     {
       "date": "2026-11-18 21:46",
       "auc": 0.5074,
@@ -1525,6 +1518,13 @@
       "winner": "champion",
       "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
       "coin_days": 458788
+    },
+    {
+      "date": "2026-11-21 00:16",
+      "auc": 0.5089,
+      "winner": "champion",
+      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
+      "coin_days": 458788
     }
   ],
   "leaderboard": [
@@ -1569,32 +1569,32 @@
     },
     {
       "config": {
-        "kind": "logreg",
-        "C": 1.3492,
+        "kind": "hgb",
+        "learning_rate": 0.0439,
+        "max_leaf_nodes": 24,
+        "min_samples_leaf": 200,
+        "l2": 0.197,
+        "max_iter": 300,
+        "max_features": 1.0,
         "features": "no_market_mood"
       },
-      "val_auc": 0.512
+      "val_auc": 0.5095
     },
     {
       "config": {
         "kind": "logreg",
-        "C": 0.0725,
+        "C": 0.016,
         "features": "all"
       },
-      "val_auc": 0.5089
+      "val_auc": 0.5081
     },
     {
       "config": {
-        "kind": "hgb",
-        "learning_rate": 0.1266,
-        "max_leaf_nodes": 48,
-        "min_samples_leaf": 500,
-        "l2": 0.207,
-        "max_iter": 100,
-        "max_features": 0.7,
-        "features": "no_market_mood"
+        "kind": "logreg",
+        "C": 0.2681,
+        "features": "price_volume_only"
       },
-      "val_auc": 0.5051
+      "val_auc": 0.4877
     }
   ],
   "call_review": {
