@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-11-21T06:16+00:00",
+  "trained_at": "2026-11-21T06:31+00:00",
   "demo_data": false,
   "coins": 635,
   "coin_days": 458788,
@@ -126,13 +126,6 @@
   },
   "buy_and_hold_avg_7d_return_test": -0.93,
   "history": [
-    {
-      "date": "2026-11-19 03:45",
-      "auc": 0.5074,
-      "winner": "champion",
-      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
-      "coin_days": 458372
-    },
     {
       "date": "2026-11-19 04:01",
       "auc": 0.5074,
@@ -1525,6 +1518,13 @@
       "winner": "champion",
       "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
       "coin_days": 458788
+    },
+    {
+      "date": "2026-11-21 06:31",
+      "auc": 0.5089,
+      "winner": "champion",
+      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
+      "coin_days": 458788
     }
   ],
   "leaderboard": [
@@ -1569,40 +1569,32 @@
     },
     {
       "config": {
+        "kind": "logreg",
+        "C": 0.0587,
+        "features": "no_strategy_signals"
+      },
+      "val_auc": 0.5007
+    },
+    {
+      "config": {
         "kind": "hgb",
-        "learning_rate": 0.0648,
-        "max_leaf_nodes": 48,
-        "min_samples_leaf": 200,
-        "l2": 2.043,
-        "max_iter": 100,
-        "max_features": 0.7,
-        "features": "no_market_mood"
+        "learning_rate": 0.0272,
+        "max_leaf_nodes": 31,
+        "min_samples_leaf": 500,
+        "l2": 4.7,
+        "max_iter": 300,
+        "max_features": 1.0,
+        "features": "price_volume_only"
       },
-      "val_auc": 0.5093
+      "val_auc": 0.4988
     },
     {
       "config": {
         "kind": "logreg",
-        "C": 0.0194,
-        "features": "all"
+        "C": 1.1698,
+        "features": "price_volume_only"
       },
-      "val_auc": 0.5083
-    },
-    {
-      "config": {
-        "kind": "logreg",
-        "C": 1.7769,
-        "features": "no_strategy_signals"
-      },
-      "val_auc": 0.5032
-    },
-    {
-      "config": {
-        "kind": "logreg",
-        "C": 0.008,
-        "features": "no_strategy_signals"
-      },
-      "val_auc": 0.4995
+      "val_auc": 0.4877
     }
   ],
   "call_review": {
