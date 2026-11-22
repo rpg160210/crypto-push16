@@ -1,8 +1,8 @@
 {
-  "trained_at": "2026-11-22T13:18+00:00",
+  "trained_at": "2026-11-22T13:44+00:00",
   "demo_data": false,
   "coins": 635,
-  "coin_days": 458995,
+  "coin_days": 459198,
   "data_source": "binance",
   "inputs": [
     "ret_1d",
@@ -30,109 +30,102 @@
   "exam": {
     "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
     "winner": "champion",
-    "champion_auc": 0.5088,
-    "challenger_auc": 0.498,
+    "champion_auc": 0.5084,
+    "challenger_auc": 0.4969,
     "test_period": "2024-09-10 to 2026-11-15",
-    "test_rows": 312600,
+    "test_rows": 313031,
     "accuracy": 53.3,
     "accuracy_if_you_always_guessed_the_majority": 58.5,
-    "auc": 0.5088,
+    "auc": 0.5084,
     "confidence_check": [
       {
         "model_said": "0%-35% chance up",
-        "times": 36939,
-        "actually_went_up": 39.1,
-        "avg_7d_return": -1.98
+        "times": 37363,
+        "actually_went_up": 39.3,
+        "avg_7d_return": -1.97
       },
       {
         "model_said": "35%-45% chance up",
-        "times": 114728,
-        "actually_went_up": 41.8,
-        "avg_7d_return": -0.73
+        "times": 114694,
+        "actually_went_up": 41.7,
+        "avg_7d_return": -0.75
       },
       {
         "model_said": "45%-55% chance up",
-        "times": 97588,
+        "times": 97511,
         "actually_went_up": 41.0,
-        "avg_7d_return": -0.9
+        "avg_7d_return": -0.93
       },
       {
         "model_said": "55%-65% chance up",
-        "times": 44105,
-        "actually_went_up": 43.1,
-        "avg_7d_return": -0.76
+        "times": 44202,
+        "actually_went_up": 43.4,
+        "avg_7d_return": -0.69
       },
       {
         "model_said": "65%-100% chance up",
-        "times": 19240,
-        "actually_went_up": 43.5,
-        "avg_7d_return": -0.67
+        "times": 19261,
+        "actually_went_up": 42.8,
+        "avg_7d_return": -0.75
       }
     ],
     "model_trusted": false
   },
   "strategy_backtest_test_period": {
     "trend_following": {
-      "signals": 312600,
-      "win_rate": 52.8,
-      "avg_return_per_signal": 0.55,
-      "median_return_per_signal": 0.73
+      "signals": 313031,
+      "win_rate": 52.9,
+      "avg_return_per_signal": 0.56,
+      "median_return_per_signal": 0.74
     },
     "momentum": {
-      "signals": 204857,
-      "win_rate": 53.3,
-      "avg_return_per_signal": 0.84,
-      "median_return_per_signal": 0.87
+      "signals": 205233,
+      "win_rate": 53.4,
+      "avg_return_per_signal": 0.85,
+      "median_return_per_signal": 0.89
     },
     "rsi_reversion": {
-      "signals": 27610,
-      "win_rate": 54.9,
-      "avg_return_per_signal": 0.81,
-      "median_return_per_signal": 1.44
+      "signals": 27778,
+      "win_rate": 54.6,
+      "avg_return_per_signal": 0.76,
+      "median_return_per_signal": 1.37
     },
     "macd": {
-      "signals": 312600,
-      "win_rate": 48.6,
+      "signals": 313031,
+      "win_rate": 48.7,
       "avg_return_per_signal": 0.12,
-      "median_return_per_signal": -0.37
+      "median_return_per_signal": -0.36
     },
     "bollinger_reversion": {
-      "signals": 32573,
-      "win_rate": 52.8,
-      "avg_return_per_signal": 0.29,
-      "median_return_per_signal": 0.76
+      "signals": 32632,
+      "win_rate": 52.7,
+      "avg_return_per_signal": 0.27,
+      "median_return_per_signal": 0.75
     },
     "turtle_breakout": {
-      "signals": 73258,
+      "signals": 73289,
       "win_rate": 52.0,
       "avg_return_per_signal": 0.53,
-      "median_return_per_signal": 0.58
+      "median_return_per_signal": 0.59
     },
     "volume_breakout": {
-      "signals": 33322,
+      "signals": 33354,
       "win_rate": 46.0,
-      "avg_return_per_signal": 0.47,
-      "median_return_per_signal": -1.31
+      "avg_return_per_signal": 0.48,
+      "median_return_per_signal": -1.29
     }
   },
   "strategy_weights": {
-    "trend_following": 0.18,
-    "momentum": 0.278,
-    "rsi_reversion": 0.276,
+    "trend_following": 0.187,
+    "momentum": 0.287,
+    "rsi_reversion": 0.262,
     "macd": 0.0,
-    "bollinger_reversion": 0.095,
-    "turtle_breakout": 0.171,
+    "bollinger_reversion": 0.09,
+    "turtle_breakout": 0.174,
     "volume_breakout": 0.0
   },
-  "buy_and_hold_avg_7d_return_test": -0.93,
+  "buy_and_hold_avg_7d_return_test": -0.94,
   "history": [
-    {
-      "date": "2026-11-20 11:01",
-      "auc": 0.5089,
-      "winner": "champion",
-      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
-      "coin_days": 458786
-    },
     {
       "date": "2026-11-20 11:16",
       "auc": 0.5089,
@@ -1525,6 +1518,13 @@
       "winner": "champion",
       "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
       "coin_days": 458995
+    },
+    {
+      "date": "2026-11-22 13:44",
+      "auc": 0.5084,
+      "winner": "champion",
+      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
+      "coin_days": 459198
     }
   ],
   "leaderboard": [
@@ -1539,7 +1539,7 @@
         "max_features": 0.7,
         "features": "no_market_mood"
       },
-      "val_auc": 0.5379
+      "val_auc": 0.5374
     },
     {
       "config": {
@@ -1552,7 +1552,7 @@
         "max_features": 0.7,
         "features": "no_market_mood"
       },
-      "val_auc": 0.5376
+      "val_auc": 0.5366
     },
     {
       "config": {
@@ -1565,63 +1565,50 @@
         "max_features": 0.7,
         "features": "no_market_mood"
       },
-      "val_auc": 0.537
+      "val_auc": 0.5363
+    },
+    {
+      "config": {
+        "kind": "hgb",
+        "learning_rate": 0.0185,
+        "max_leaf_nodes": 7,
+        "min_samples_leaf": 1000,
+        "l2": 4.158,
+        "max_iter": 500,
+        "max_features": 1.0,
+        "features": "no_market_mood"
+      },
+      "val_auc": 0.5342
     },
     {
       "config": {
         "kind": "logreg",
-        "C": 0.4523,
-        "features": "all"
-      },
-      "val_auc": 0.5084
-    },
-    {
-      "config": {
-        "kind": "hgb",
-        "learning_rate": 0.1274,
-        "max_leaf_nodes": 15,
-        "min_samples_leaf": 500,
-        "l2": 5.653,
-        "max_iter": 500,
-        "max_features": 0.7,
-        "features": "no_market_mood"
-      },
-      "val_auc": 0.4965
-    },
-    {
-      "config": {
-        "kind": "hgb",
-        "learning_rate": 0.0245,
-        "max_leaf_nodes": 31,
-        "min_samples_leaf": 500,
-        "l2": 1.846,
-        "max_iter": 500,
-        "max_features": 1.0,
+        "C": 0.4623,
         "features": "price_volume_only"
       },
-      "val_auc": 0.4963
+      "val_auc": 0.4881
     }
   ],
   "call_review": {
     "reviewed": 240,
     "waiting_for_7_days": 48,
-    "overall_right_pct": 79.2,
+    "overall_right_pct": 79.6,
     "by_call": {
       "analyze:STRONG BUY": {
         "calls": 1,
         "right": 1,
         "right_pct": 100.0,
-        "avg_7d_return_pct": 19.43,
-        "btc_same_weeks_pct": -6.99,
+        "avg_7d_return_pct": 20.37,
+        "btc_same_weeks_pct": -6.96,
         "beat_btc": 1,
         "beat_btc_of": 1
       },
       "analyze:STRONG SELL": {
         "calls": 232,
-        "right": 183,
-        "right_pct": 78.9,
-        "avg_7d_return_pct": -3.31,
-        "btc_same_weeks_pct": -6.99,
+        "right": 184,
+        "right_pct": 79.3,
+        "avg_7d_return_pct": -3.26,
+        "btc_same_weeks_pct": -6.96,
         "beat_btc": 69,
         "beat_btc_of": 232
       },
@@ -1629,8 +1616,8 @@
         "calls": 7,
         "right": 6,
         "right_pct": 85.7,
-        "avg_7d_return_pct": -2.44,
-        "btc_same_weeks_pct": -6.99,
+        "avg_7d_return_pct": -2.31,
+        "btc_same_weeks_pct": -6.96,
         "beat_btc": 0,
         "beat_btc_of": 7
       }
@@ -1638,6 +1625,6 @@
   },
   "market_filter": {
     "enabled": false,
-    "why": "typical 7d result of buy signals: BTC downtrend -1.47% vs uptrend -2.55%"
+    "why": "typical 7d result of buy signals: BTC downtrend -1.51% vs uptrend -2.66%"
   }
 }
