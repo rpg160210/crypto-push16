@@ -17,6 +17,8 @@ How it works
   * Money management: every signal says how much to buy (risk RISK_PCT of ACCOUNT_SIZE if the
     stop-loss hits), the highest price still worth entering, max MAX_OPEN_TRADES at once, and a
     daily loss limit. A SAFETY SWITCH pauses signals if recent paper trades lose money.
+  * Every scan also opens PRACTICE trades on its top picks - even when there's no edge and
+    no alert - so it always has its own recent picks to learn from.
   * Every signal becomes a paper trade in trade_journal.json. Each scan checks how open
     trades ended. When it retrains, its own finished trades count JOURNAL_WEIGHT times
     more than simulated ones - it learns from its own wins and losses.
@@ -48,6 +50,9 @@ TP_ATR = 1.5               # take-profit = 1.5x the coin's average hourly range
 MIN_TP, MAX_TP = 0.008, 0.08
 REWARD_RISK = 1.5          # stop-loss = take-profit / 1.5
 JOURNAL_WEIGHT = 5         # its own real (paper) trades count 5x in training
+PRACTICE_PER_SCAN = 2      # every scan also "practice trades" its top picks (no alert) to learn from
+PRACTICE_WEIGHT = 3        # practice trades count 3x in training
+PRACTICE_KEEP_DAYS = 21
 TRAIN_HOURS = 3000         # ~4 months of hourly candles per coin
 TRAIN_COINS = int(os.getenv("DAYTRADE_COINS", "150"))  # most-traded coins only (tight spreads)
 SCAN_COINS = 80
@@ -133,7 +138,7 @@ def features(df: pd.DataFrame, btc: pd.DataFrame) -> pd.DataFrame:
     c, v = df["close"], df["volume"]
     vwap = (c * v).rolling(24).sum() / v.rolling(24).sum()
     extra = pd.DataFrame({
-        "hour": df.index.hour, "weekday": df.index.dayofweek,      # time-of-day patterns
+        "hour": df.index.hour, "weekday": df.index.day_of_week,      # time-of-day patterns
         "ret_4h": c.pct_change(4), "ret_24h": c.pct_change(24),
         "vs_vwap_24h": c / vwap - 1,                                 # above/below the day's avg price
         "range_1h": (df["high"] - df["low"]) / c,
@@ -185,9 +190,10 @@ def pnl(t) -> float:
     return t["net"] * t.get("size", ACCOUNT / MAX_OPEN)
 
 
-def journal_stats(journal, days=30, btc_now=None):
+def journal_stats(journal, days=30, btc_now=None, practice=False):
     cutoff = time.time() * 1000 - days * 24 * HOUR_MS
-    closed = [t for t in journal["trades"] if t["status"] != "open" and t["opened"] >= cutoff]
+    closed = [t for t in journal["trades"] if t["status"] != "open" and t["opened"] >= cutoff
+              and t.get("practice", False) == practice]
     if not closed:
         return None
     nets = [t["net"] for t in closed]
@@ -221,7 +227,8 @@ def safety_check(journal, bundle, now_ms):
             return True, ("Safety switch OFF: a new training found an edge again, so signals are back on. "
                           "Its record starts fresh from now.")
         return False, None
-    recent = [t for t in journal["trades"] if t["status"] != "open" and t["opened"] >= st["resumed_at"]]
+    recent = [t for t in journal["trades"] if t["status"] != "open" and t["opened"] >= st["resumed_at"]
+              and not t.get("practice")]
     recent = sorted(recent, key=lambda t: t["opened"])[-KILL_WINDOW:]
     if len(recent) >= KILL_MIN_TRADES and np.mean([t["net"] for t in recent]) < 0:
         avg = 100 * float(np.mean([t["net"] for t in recent]))
@@ -234,7 +241,7 @@ def safety_check(journal, bundle, now_ms):
 
 def day_loss_hit(journal, now_ms) -> bool:
     day = datetime.fromtimestamp(now_ms / 1000, timezone.utc).date()
-    today = [t for t in journal["trades"] if t["status"] != "open" and t.get("closed")
+    today = [t for t in journal["trades"] if t["status"] != "open" and t.get("closed") and not t.get("practice")
              and datetime.fromtimestamp(t["closed"] / 1000, timezone.utc).date() == day]
     return sum(pnl(t) for t in today) <= -DAILY_LOSS_LIMIT * ACCOUNT
 
@@ -282,6 +289,7 @@ def journal_rows(journal, columns):
     X = pd.DataFrame([{c: t["features"].get(c) for c in columns} for t in rows], dtype=float)
     X["net"] = [t["net"] for t in rows]
     X["date"] = pd.to_datetime([t["opened"] for t in rows], unit="ms")
+    X["w"] = [PRACTICE_WEIGHT if t.get("practice") else JOURNAL_WEIGHT for t in rows]
     return X
 
 
@@ -339,7 +347,9 @@ def cmd_train(args):
     resolve_open_trades(journal, args.demo)  # check how its latest trades ended before learning
     jr = journal_rows(journal, cols)
     if len(jr):
-        print(f"Its own finished paper trades: {len(jr)} (each counts {JOURNAL_WEIGHT}x)")
+        n_pr = int((jr["w"] == PRACTICE_WEIGHT).sum())
+        print(f"Learning from its own finished trades: {len(jr) - n_pr} signalled "
+              f"({JOURNAL_WEIGHT}x weight) + {n_pr} practice ({PRACTICE_WEIGHT}x weight)")
 
     times = np.sort(data["date"].unique())
     gap = pd.Timedelta(hours=HOLD_HOURS)
@@ -352,7 +362,7 @@ def cmd_train(args):
     def with_journal(d, before):
         j = jr[jr["date"] < before] if len(jr) else jr
         X = pd.concat([d[cols + ["net"]], j[cols + ["net"]]]) if len(j) else d[cols + ["net"]]
-        w = np.r_[np.ones(len(d)), np.full(len(j), JOURNAL_WEIGHT)] if len(j) else np.ones(len(d))
+        w = np.r_[np.ones(len(d)), j["w"].to_numpy()] if len(j) else np.ones(len(d))
         return X, w
 
     # --- champion vs challengers (same idea as train.py) ---
@@ -491,8 +501,8 @@ def cmd_scan(args):
 
     btc_now = float(btc["close"].iloc[-1])
     ok, safety_msg = safety_check(journal, bundle, now_ms)
-    open_trades = [t for t in journal["trades"] if t["status"] == "open"]
-    open_coins = {t["coin"] for t in open_trades}
+    open_trades = [t for t in journal["trades"] if t["status"] == "open" and not t.get("practice")]
+    open_coins = {t["coin"] for t in journal["trades"] if t["status"] == "open"}
     blocked = None
     if th is None:
         blocked = "no proven edge in the last training"
@@ -518,6 +528,29 @@ def cmd_scan(args):
                      "status": "open", "features": r["features"]}
                 journal["trades"].append(t)
                 new.append((r, t))
+
+    # Practice trades: its top picks this hour, tracked like real trades but never alerted.
+    # They make sure it always has fresh examples of its OWN choices to learn from.
+    busy = {t["coin"] for t in journal["trades"] if t["status"] == "open"}
+    practice = []
+    for r in rows:
+        if len(practice) >= PRACTICE_PER_SCAN:
+            break
+        if r["coin"] in busy:
+            continue
+        journal["trades"].append({
+            "coin": r["coin"], "opened": now_ms, "entry": r["price"],
+            "tp": r["price"] * (1 + r["tp_pct"]), "sl": r["price"] * (1 - r["sl_pct"]),
+            "deadline": now_ms + HOLD_HOURS * HOUR_MS, "prob": round(r["p"], 4),
+            "btc_entry": btc_now, "status": "open", "practice": True,
+            "features": {k: (None if v is None else float(f"{v:.5g}")) for k, v in r["features"].items()}})
+        practice.append(r["coin"])
+    if practice:
+        print(f"Practice trades opened (no alert, for learning): {', '.join(practice)}")
+    pst = journal_stats(journal, practice=True)
+    if pst:
+        print(f"Practice trades, last {pst['days']} days: {pst['trades']} done, {pst['win_rate']}% won, "
+              f"{pst['avg_net_pct']:+}% avg after costs (its top pick every hour)")
 
     st = journal_stats(journal, btc_now=btc_now)
     track = track_line(st)
@@ -553,13 +586,14 @@ def cmd_scan(args):
     for t in journal["trades"]:
         if t["status"] != "open" and not t.get("reported"):
             t["reported"] = True
-            if args.notify:
+            if args.notify and not t.get("practice"):
                 core.notify(f"Trade closed: {t['coin']} {t['status'].upper()} {100 * t['net']:+.2f}% "
                             f"(${pnl(t):+,.2f})",
                             f"Entry {fmt(t['entry'])} -> exit {fmt(t['exit'])} (after costs)\n{track}",
                             tags="white_check_mark" if t["net"] > 0 else "x")
-    journal["trades"] = [t for t in journal["trades"]
-                         if t["opened"] > now_ms - 120 * 24 * HOUR_MS]  # keep ~4 months
+    journal["trades"] = [t for t in journal["trades"]  # real ~4 months, practice 3 weeks
+                         if t["opened"] > now_ms - (PRACTICE_KEEP_DAYS if t.get("practice") else 120)
+                         * 24 * HOUR_MS]
     if not args.demo:
         JOURNAL_FILE.write_text(json.dumps(journal))
     print("\nPaper trades only - nothing is bought for you. Day trading loses money for most "

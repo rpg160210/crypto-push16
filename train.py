@@ -181,9 +181,13 @@ def summarize_calls(v):
     b = [r for r in v if r["btc_ret"] is not None]
     if b:
         out["btc_same_weeks_pct"] = round(100 * float(np.mean([r["btc_ret"] for r in b])), 2)
-        if v[0]["buy"]:  # did buying the coin beat just buying Bitcoin?
+        # Did the call beat the market? Buy: coin rose more than Bitcoin.
+        # Sell/avoid: coin fell MORE than Bitcoin (not just "the whole market fell").
+        if v[0]["buy"]:
             out["beat_btc"] = int(sum(r["ret"] > r["btc_ret"] for r in b))
-            out["beat_btc_of"] = len(b)
+        else:
+            out["beat_btc"] = int(sum(r["ret"] < r["btc_ret"] for r in b))
+        out["beat_btc_of"] = len(b)
     return out
 
 
@@ -203,8 +207,8 @@ def print_review(review):
                 extra += f"   beat BTC {v['beat_btc']}/{v['beat_btc_of']}"
         print(f"  {kind:8}{call:16}{v['right']:>4}/{v['calls']:<4} right ({v['right_pct']}%)   "
               f"avg 7d after the call {v['avg_7d_return_pct']:+}%{extra}")
-    print("  (buy calls are right if the price rose; sell/avoid calls if it fell. If buy calls")
-    print("   don't beat BTC, simply holding Bitcoin would have been better.)")
+    print("  (right = buy calls rose / sell calls fell. 'beat BTC' is the stricter test: buy calls")
+    print("   rose MORE than Bitcoin, sell calls fell MORE than Bitcoin - real skill, not market luck.)")
 
 
 def notify_review(review):
