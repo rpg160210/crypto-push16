@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-11-22T16:18+00:00",
+  "trained_at": "2026-11-22T16:33+00:00",
   "demo_data": false,
   "coins": 635,
   "coin_days": 459198,
@@ -126,13 +126,6 @@
   },
   "buy_and_hold_avg_7d_return_test": -0.94,
   "history": [
-    {
-      "date": "2026-11-20 14:01",
-      "auc": 0.5089,
-      "winner": "champion",
-      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
-      "coin_days": 458786
-    },
     {
       "date": "2026-11-20 14:31",
       "auc": 0.5089,
@@ -1525,6 +1518,13 @@
       "winner": "champion",
       "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
       "coin_days": 459198
+    },
+    {
+      "date": "2026-11-22 16:33",
+      "auc": 0.5084,
+      "winner": "champion",
+      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
+      "coin_days": 459198
     }
   ],
   "leaderboard": [
@@ -1570,54 +1570,46 @@
     {
       "config": {
         "kind": "hgb",
-        "learning_rate": 0.0684,
+        "learning_rate": 0.1436,
         "max_leaf_nodes": 15,
         "min_samples_leaf": 200,
-        "l2": 4.52,
-        "max_iter": 200,
-        "max_features": 1.0,
-        "features": "no_market_mood"
-      },
-      "val_auc": 0.5178
-    },
-    {
-      "config": {
-        "kind": "logreg",
-        "C": 0.0045,
+        "l2": 1.709,
+        "max_iter": 100,
+        "max_features": 0.5,
         "features": "price_volume_only"
       },
-      "val_auc": 0.4858
+      "val_auc": 0.5101
     }
   ],
   "call_review": {
     "reviewed": 240,
     "waiting_for_7_days": 49,
-    "overall_right_pct": 77.9,
+    "overall_right_pct": 78.3,
     "by_call": {
       "analyze:STRONG BUY": {
         "calls": 1,
         "right": 1,
         "right_pct": 100.0,
-        "avg_7d_return_pct": 20.83,
-        "btc_same_weeks_pct": -6.61,
+        "avg_7d_return_pct": 22.26,
+        "btc_same_weeks_pct": -6.21,
         "beat_btc": 1,
         "beat_btc_of": 1
       },
       "analyze:STRONG SELL": {
         "calls": 232,
-        "right": 181,
-        "right_pct": 78.0,
-        "avg_7d_return_pct": -3.07,
-        "btc_same_weeks_pct": -6.61,
-        "beat_btc": 70,
+        "right": 182,
+        "right_pct": 78.4,
+        "avg_7d_return_pct": -3.04,
+        "btc_same_weeks_pct": -6.21,
+        "beat_btc": 76,
         "beat_btc_of": 232
       },
       "hype:AVOID": {
         "calls": 7,
         "right": 5,
         "right_pct": 71.4,
-        "avg_7d_return_pct": -2.05,
-        "btc_same_weeks_pct": -6.61,
+        "avg_7d_return_pct": -1.91,
+        "btc_same_weeks_pct": -6.21,
         "beat_btc": 0,
         "beat_btc_of": 7
       }
