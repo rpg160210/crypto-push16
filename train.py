@@ -464,6 +464,21 @@ def main():
     total = sum(weights.values()) or 1
     weights = {k: round(v / total, 3) for k, v in weights.items()}
 
+    # Market-weather filter: did buy-rated coins do badly while Bitcoin was in a downtrend?
+    # Judged on the unseen exam period; only switched on if buys in downtrends lost money.
+    cons = sum(test[f"sig_{k}"] * w for k, w in weights.items()) if weights else pd.Series(0, index=test.index)
+    buyish = cons >= 0.2
+    weather = {"enabled": False, "why": "not enough buy signals to judge"}
+    if "btc_trend" in test and buyish.sum() >= 400:
+        down = buyish & (test["btc_trend"] <= 0)
+        upm = buyish & (test["btc_trend"] > 0)
+        if down.sum() >= 200 and upm.sum() >= 200:
+            d, u = 100 * test.loc[down, "fwd_ret"].median(), 100 * test.loc[upm, "fwd_ret"].median()
+            weather = {"enabled": bool(d < 0 and d < u),
+                       "why": f"typical 7d result of buy signals: BTC downtrend {d:+.2f}% vs uptrend {u:+.2f}%"}
+    print(f"Market-weather filter (no buy calls while Bitcoin trends down): "
+          f"{'ON' if weather['enabled'] else 'OFF'} - {weather['why']}")
+
     # Retrain the winner on everything so the live model knows the most recent market.
     final_model = make_best().fit(labeled_final[cols], y(labeled_final))
 
@@ -478,6 +493,7 @@ def main():
     exam["model_trusted"] = model_trusted
     joblib.dump({"model": final_model, "columns": cols, "strategy_weights": weights,
                  "model_trusted": model_trusted, "auc": exam["auc"], "config": best_cfg,
+                 "btc_filter": weather["enabled"],
                  "demo": args.demo}, core.ROOT / "model.joblib")
     report = {
         "trained_at": datetime.now(timezone.utc).isoformat(timespec="minutes"),
@@ -493,6 +509,7 @@ def main():
         "history": history,
         "leaderboard": leaderboard,
         "call_review": review,
+        "market_filter": weather,
     }
     (core.ROOT / "training_report.json").write_text(json.dumps(report, indent=2))
 

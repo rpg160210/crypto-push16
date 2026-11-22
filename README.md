@@ -18,6 +18,17 @@ percentages** from 20,000 simulated futures. It pushes verdict changes to your p
 | **Risk %** | 20,000 Monte Carlo futures built from the coin's own past daily swings (tilted toward the model's 7-day view): chance of ending up/down, ±10%, ±25%, −50%, a 20% drop along the way, typical range, worst/best 5% |
 | **Alerts** | ntfy push when a coin's verdict changes |
 
+## Dashboard + weekly summary
+**https://rpg160210.github.io/crypto-push16/** - one page with every mode's record vs Bitcoin, open
+trades, past-call scorecard, model scores and today's calls. Rebuilt after every bot run
+(`dashboard.yml` + `dashboard.py`). Every Sunday evening it also pushes a weekly summary.
+
+## Practice trades/calls and the market-weather filter
+* Every hour the day-trade scan "practice trades" its top 2 picks, and every analyze run logs its
+  2 best/2 worst picks as practice calls. No alerts - training learns from how they turn out.
+* Market-weather filter: training checks whether buys while Bitcoin trends down lost money on
+  recent unseen data. Only if they did, buy signals pause during BTC downtrends.
+
 ## Setup (free)
 1. Install the **ntfy** app on your phone and subscribe to a random topic name (e.g. `crypto-k39fz2`).
 2. Create a GitHub repo (private is fine) and upload these files.

@@ -239,6 +239,11 @@ def safety_check(journal, bundle, now_ms):
     return True, None
 
 
+def btc_trend_now(btc) -> float:
+    c = btc["close"]
+    return float(core.ema(c, 20).iloc[-1] / core.ema(c, 50).iloc[-1] - 1)
+
+
 def day_loss_hit(journal, now_ms) -> bool:
     day = datetime.fromtimestamp(now_ms / 1000, timezone.utc).date()
     today = [t for t in journal["trades"] if t["status"] != "open" and t.get("closed") and not t.get("practice")
@@ -422,8 +427,22 @@ def cmd_train(args):
     net = test["net"].to_numpy()
     th = pick_threshold(p, net)
     take_all = float(net.mean())
+    # Market-weather filter: would skipping trades while Bitcoin is in a short-term
+    # downtrend have made more money on the exam? Only switched on if it clearly did.
+    up = (test["btc_trend"].to_numpy() > 0) if "btc_trend" in test else np.ones(len(test), bool)
+    th_up = pick_threshold(p[up], net[up]) if up.sum() >= MIN_EXAM_TRADES else None
+    sc = lambda t: t[1] * np.sqrt(t[2]) if t else -np.inf
+    use_filter = bool(th_up and sc(th_up) > sc(th) * 1.1)
+    weather = {"enabled": use_filter,
+               "why": (f"exam trades in BTC uptrends only: {100 * th_up[1]:+.3f}%/trade vs all: "
+                       f"{(100 * th[1]) if th else float('nan'):+.3f}%" if th_up else
+                       "trading only in BTC uptrends didn't find an edge either")}
+    if use_filter:
+        th = th_up
+    print(f"Market-weather filter (skip buys while Bitcoin trends down): "
+          f"{'ON' if use_filter else 'OFF'} - {weather['why']}")
     if th:
-        m = p >= th[0]
+        m = (p >= th[0]) & (up if use_filter else True)
         stats = {"threshold": th[0], "trades": int(m.sum()),
                  "win_rate": round(100 * float((net[m] > 0).mean()), 1),
                  "avg_net_pct": round(100 * th[1], 3)}
@@ -443,6 +462,7 @@ def cmd_train(args):
         "journal_trades": int(len(jr))}])[-200:]
     joblib.dump({"model": final, "columns": fc, "config": cfg, "auc": float(auc),
                  "threshold": th[0] if th else None, "exam_stats": stats, "demo": args.demo,
+                 "btc_filter": use_filter,
                  "trained_at": int(time.time() * 1000)},
                 MODEL_FILE)
     REPORT_FILE.write_text(json.dumps({
@@ -450,7 +470,8 @@ def cmd_train(args):
         "simulated_trades": int(len(data)), "own_paper_trades_used": int(len(jr)),
         "hold_hours": HOLD_HOURS, "cost_per_trade_pct": COST * 100,
         "exam": {"auc": round(float(auc), 4), "winner": winner, "model": T.describe(cfg) if cfg else "previous",
-                 "signals": stats, "take_every_trade_avg_net_pct": round(100 * take_all, 3)},
+                 "signals": stats, "take_every_trade_avg_net_pct": round(100 * take_all, 3),
+                 "market_filter": weather},
         "own_trades_last_30d": journal_stats(journal),
         "inputs": fc, "history": history, "leaderboard": leaderboard[:T.LEADERBOARD_SIZE],
     }, indent=2))
@@ -508,6 +529,8 @@ def cmd_scan(args):
         blocked = "no proven edge in the last training"
     elif not ok:
         blocked = f"safety switch is ON ({journal['safety'].get('reason', '')})"
+    elif bundle.get("btc_filter") and btc_trend_now(btc) <= 0:
+        blocked = "market weather: Bitcoin is in a short-term downtrend (filter learned in training)"
     elif day_loss_hit(journal, now_ms):
         blocked = f"daily loss limit hit (-{DAILY_LOSS_LIMIT:.0%} of account) - back tomorrow"
     elif len(open_trades) >= MAX_OPEN:

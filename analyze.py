@@ -67,6 +67,12 @@ def analyze_coin(coin, bundle, btc, load):
         score = 0.7 * consensus  # model failed its exam -> strategies only (STRONG needs near-full agreement)
     score = float(np.clip(score, -1, 1))
     idx = 0 if score <= -0.5 else 1 if score <= -0.15 else 2 if score < 0.15 else 3 if score < 0.5 else 4
+    # Market-weather filter (learned in training): no buy calls while Bitcoin trends down.
+    weather_blocked = False
+    if bundle.get("btc_filter") and idx > 2 and btc is not None:
+        b = btc["close"]
+        if core.ema(b, 20).iloc[-1] <= core.ema(b, 50).iloc[-1]:
+            idx, weather_blocked = 2, True
 
     tilt = p_up if trusted else None  # untrusted model -> neutral simulations
     risk7, risk30 = (core.risk_table(df["close"], 7, tilt),
@@ -92,6 +98,7 @@ def analyze_coin(coin, bundle, btc, load):
                   "daily_volatility": round(float(f["vol_30d"]) * 100, 1),
                   "below_90d_high": round(float(f["drawdown_90d"]) * 100, 1)},
         "features": core.snapshot(f),
+        "weather_blocked": weather_blocked,
     }
 
 
@@ -118,6 +125,9 @@ def rule_opinion(r):
         why += f" RSI is {fx['rsi']}, very oversold, so a bounce is possible but falling knives cut."
     warn = (f" Risk is {r['risk_level']}: in simulations it fell 25%+ within 30 days "
             f"{rk['chance_down_25']}% of the time.")
+    if r.get("weather_blocked"):
+        why += (" The signals lean BUY, but Bitcoin is in a downtrend and buys in downtrends have "
+                "been losing lately, so I'm holding off.")
     return lead + why + warn
 
 
