@@ -357,8 +357,10 @@ def risk_table(close: pd.Series, days: int, p_up_7d=None) -> dict:
 # Every call the bot makes is saved so training can later check whether it was right.
 # Each writer has its own file (analyze / hype) so the GitHub jobs never edit the same file.
 CALL_LOGS = {"analyze": ROOT / "calls_analyze.json", "hype": ROOT / "calls_hype.json"}
-BUY_CALLS = {"STRONG BUY", "BUY", "SPECULATIVE BUY", "MOMENTUM BUY"}
-SELL_CALLS = {"STRONG SELL", "SELL", "AVOID", "FADING - AVOID", "DON'T CHASE"}
+BUY_CALLS = {"STRONG BUY", "BUY", "SPECULATIVE BUY", "MOMENTUM BUY", "PRACTICE BUY"}
+SELL_CALLS = {"STRONG SELL", "SELL", "AVOID", "FADING - AVOID", "DON'T CHASE", "PRACTICE SELL"}
+# PRACTICE calls: its top/bottom picks that weren't strong enough for a real call. Never
+# alerted - they just make sure it always has fresh examples of its own picks to learn from.
 REVIEW_DAYS = HORIZON  # a call is judged on the price 7 days later
 
 
@@ -387,7 +389,8 @@ def log_calls(kind: str, calls: list[dict], demo=False):
         entry = {"time": now, **c}
         log.append(entry)
         last[c["coin"]] = entry
-    log = [c for c in log if c["time"] > now - 90 * 86_400_000]  # keep 90 days
+    log = [c for c in log  # keep real calls 90 days, practice calls 30 days
+           if c["time"] > now - (30 if c.get("practice") else 90) * 86_400_000]
     f.write_text(json.dumps(log))
 
 

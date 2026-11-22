@@ -282,6 +282,19 @@ def main():
     core.log_calls("analyze", [{"coin": r["coin"], "call": r["verdict"], "price": r["price"],
                                 "source": "binance" if binance_mode else "coingecko",
                                 "features": r["features"]} for r in to_log], demo=args.demo)
+    # Practice calls: its 2 highest- and 2 lowest-scored coins that didn't get a real call.
+    # No alert - training learns from how they turn out, so it learns even in quiet markets.
+    rest = sorted((r for r in results if r not in to_log), key=lambda r: -r["score"])
+    practice = ([(r, "PRACTICE BUY") for r in rest[:2]] +
+                [(r, "PRACTICE SELL") for r in rest[-2:] if r not in rest[:2]])
+    core.log_calls("analyze", [{"coin": r["coin"], "call": call, "price": r["price"], "practice": True,
+                                "source": "binance" if binance_mode else "coingecko",
+                                "features": {k: (None if v is None else float(f"{v:.5g}"))
+                                             for k, v in r["features"].items()}}
+                               for r, call in practice], demo=args.demo)
+    if practice:
+        print("\nPractice calls (no alert, for learning): "
+              + ", ".join(f"{r['coin']} {call.split()[1].lower()}" for r, call in practice))
 
     if args.notify or args.notify_all:
         state = json.loads(STATE_FILE.read_text()) if STATE_FILE.exists() else {}

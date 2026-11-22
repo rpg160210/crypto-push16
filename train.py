@@ -97,7 +97,8 @@ def features_for(cfg, cols):
     return [c for c in cols if keep(c)]
 
 
-CALL_WEIGHT = 5  # its own past calls count 5x in training
+CALL_WEIGHT = 5      # its own real past calls count 5x in training
+PRACTICE_WEIGHT = 3  # its practice calls (top/bottom picks, never alerted) count 3x
 
 
 def review_past_calls(demo):
@@ -157,7 +158,8 @@ def review_past_calls(demo):
         results.append({"kind": c["kind"], "call": c["call"], "ret": ret, "right": right,
                         "buy": buy, "btc_ret": btc_ret})
         if c.get("features"):
-            rows.append({**c["features"], "date": t0.normalize(), "coin": c["coin"], "fwd_ret": ret})
+            rows.append({**c["features"], "date": t0.normalize(), "coin": c["coin"], "fwd_ret": ret,
+                         "_w": PRACTICE_WEIGHT if c.get("practice") else CALL_WEIGHT})
 
     by = {}
     for r in results:
@@ -333,13 +335,16 @@ def main():
     # --- Review the bot's own past calls and learn from them ---
     review, feedback = review_past_calls(args.demo)
     if len(feedback):
+        weights = feedback["_w"].to_numpy()
         fb = feedback.reindex(columns=labeled.columns)
-        fb = pd.concat([fb] * CALL_WEIGHT, ignore_index=True)   # its own calls count 5x
+        fb = fb.loc[fb.index.repeat(weights)].reset_index(drop=True)  # real 5x, practice 3x
         # Only calls from before each period may be used for that period (keeps exams honest).
         fit = pd.concat([fit, fb[fb["date"] < val_start - gap]], ignore_index=True)
         train = pd.concat([train, fb[fb["date"] < test_start - gap]], ignore_index=True)
         labeled_final = pd.concat([labeled, fb], ignore_index=True)
-        print(f"Learning from {len(feedback)} of its own past calls (each counts {CALL_WEIGHT}x)")
+        n_pr = int((feedback["_w"] == PRACTICE_WEIGHT).sum())
+        print(f"Learning from its own past calls: {len(feedback) - n_pr} real ({CALL_WEIGHT}x weight) "
+              f"+ {n_pr} practice ({PRACTICE_WEIGHT}x weight)")
     else:
         labeled_final = labeled
 
