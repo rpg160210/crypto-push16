@@ -282,6 +282,27 @@ def main():
     if skipped:
         print(f"\n!! {len(skipped)} coins failed with an error: {', '.join(skipped)}")
 
+    # Full results for the dashboard (docs/index.html -> Calls tab).
+    if not args.demo:
+        def votes(r, kind):
+            return [k for k, v in r["votes"].items() if v["vote"] == kind and v["weight"] > 0]
+        (core.ROOT / "latest_analysis.json").write_text(json.dumps({
+            "time": int(time.time() * 1000),
+            "mode": "binance" if binance_mode else "watchlist",
+            "model_trusted": bool(bundle.get("model_trusted", True)),
+            "btc_filter": bool(bundle.get("btc_filter")),
+            "too_new": len(too_new),
+            "coins": [{
+                "c": r["coin"], "p": r["price"], "v": r["verdict"], "s": r["score"],
+                "up": r["model_chance_up_7d"], "rl": r["risk_level"],
+                "r7": {k: r["risk_7d"][k] for k in ("chance_up", "chance_up_10", "chance_down_10", "chance_down_25")},
+                "r30": {k: r["risk_30d"][k] for k in ("chance_up", "chance_up_10", "chance_up_25", "chance_down_10",
+                                                      "chance_down_25", "chance_down_50", "worst_5pct", "best_5pct")},
+                "buy": votes(r, "BUY"), "sell": votes(r, "SELL"),
+                "f": r["facts"], "wx": bool(r.get("weather_blocked")),
+                "op": r.get("opinion", ""),
+            } for r in results]}, separators=(",", ":")))
+
     if bundle.get("demo") or args.demo:
         print("\n!! DEMO MODE - fake data. Do not use for real decisions.")
     print("\nNot financial advice. The model is right more often than a coin flip in back-tests, "
