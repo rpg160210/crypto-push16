@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-11-23T07:03+00:00",
+  "trained_at": "2026-11-23T07:18+00:00",
   "demo_data": false,
   "coins": 635,
   "coin_days": 459198,
@@ -126,13 +126,6 @@
   },
   "buy_and_hold_avg_7d_return_test": -0.94,
   "history": [
-    {
-      "date": "2026-11-21 04:31",
-      "auc": 0.5089,
-      "winner": "champion",
-      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
-      "coin_days": 458788
-    },
     {
       "date": "2026-11-21 04:46",
       "auc": 0.5089,
@@ -1525,6 +1518,13 @@
       "winner": "champion",
       "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
       "coin_days": 459198
+    },
+    {
+      "date": "2026-11-23 07:18",
+      "auc": 0.5084,
+      "winner": "champion",
+      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
+      "coin_days": 459198
     }
   ],
   "leaderboard": [
@@ -1570,18 +1570,18 @@
     {
       "config": {
         "kind": "logreg",
-        "C": 0.111,
-        "features": "price_volume_only"
+        "C": 0.3518,
+        "features": "all"
       },
-      "val_auc": 0.488
+      "val_auc": 0.5078
     },
     {
       "config": {
         "kind": "logreg",
-        "C": 0.0151,
+        "C": 0.2956,
         "features": "price_volume_only"
       },
-      "val_auc": 0.4873
+      "val_auc": 0.4881
     }
   ],
   "call_review": {
@@ -1611,8 +1611,8 @@
         "calls": 9,
         "right": 7,
         "right_pct": 77.8,
-        "avg_7d_return_pct": -3.02,
-        "btc_same_weeks_pct": -6.01,
+        "avg_7d_return_pct": -2.9,
+        "btc_same_weeks_pct": -6.02,
         "beat_btc": 2,
         "beat_btc_of": 9
       }
