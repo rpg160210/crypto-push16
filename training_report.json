@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-11-23T00:03+00:00",
+  "trained_at": "2026-11-23T00:17+00:00",
   "demo_data": false,
   "coins": 635,
   "coin_days": 459198,
@@ -126,13 +126,6 @@
   },
   "buy_and_hold_avg_7d_return_test": -0.94,
   "history": [
-    {
-      "date": "2026-11-20 22:01",
-      "auc": 0.5089,
-      "winner": "champion",
-      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
-      "coin_days": 458788
-    },
     {
       "date": "2026-11-20 22:16",
       "auc": 0.5089,
@@ -1525,6 +1518,13 @@
       "winner": "champion",
       "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
       "coin_days": 459198
+    },
+    {
+      "date": "2026-11-23 00:17",
+      "auc": 0.5084,
+      "winner": "champion",
+      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
+      "coin_days": 459198
     }
   ],
   "leaderboard": [
@@ -1569,42 +1569,16 @@
     },
     {
       "config": {
-        "kind": "hgb",
-        "learning_rate": 0.0189,
-        "max_leaf_nodes": 15,
-        "min_samples_leaf": 100,
-        "l2": 5.176,
-        "max_iter": 100,
-        "max_features": 0.7,
-        "features": "price_volume_only"
-      },
-      "val_auc": 0.5275
-    },
-    {
-      "config": {
         "kind": "logreg",
-        "C": 0.0443,
-        "features": "no_market_mood"
+        "C": 0.0397,
+        "features": "no_strategy_signals"
       },
-      "val_auc": 0.5125
-    },
-    {
-      "config": {
-        "kind": "hgb",
-        "learning_rate": 0.0969,
-        "max_leaf_nodes": 48,
-        "min_samples_leaf": 100,
-        "l2": 0.775,
-        "max_iter": 100,
-        "max_features": 1.0,
-        "features": "no_market_mood"
-      },
-      "val_auc": 0.5016
+      "val_auc": 0.4984
     }
   ],
   "call_review": {
     "reviewed": 240,
-    "waiting_for_7_days": 52,
+    "waiting_for_7_days": 54,
     "overall_right_pct": 78.3,
     "by_call": {
       "analyze:STRONG BUY": {
