@@ -1,44 +1,10 @@
 {
-  "trained_at": "2026-11-25T08:18+00:00",
+  "trained_at": "2026-11-25T08:33+00:00",
   "demo_data": false,
   "coins": 645,
   "coin_days": 460446,
   "data_source": "binance",
   "inputs": [
-    "ret_1d",
-    "ret_7d",
-    "ret_30d",
-    "rsi",
-    "macd_hist",
-    "ema20_vs_50",
-    "price_vs_ema50",
-    "boll_z",
-    "donchian_pos",
-    "vol_30d",
-    "vol_ratio",
-    "volume_ratio",
-    "drawdown_90d",
-    "btc_ret_30d",
-    "btc_trend",
-    "vs_btc_30d",
-    "ret_90d",
-    "drawdown_365d",
-    "atr_pct",
-    "close_in_range",
-    "taker_buy_7d",
-    "taker_buy_shift",
-    "trades_ratio",
-    "coin_age_days",
-    "fear_greed",
-    "fear_greed_7d_change",
-    "sig_trend_following",
-    "sig_momentum",
-    "sig_rsi_reversion",
-    "sig_macd",
-    "sig_bollinger_reversion",
-    "sig_turtle_breakout",
-    "sig_volume_breakout",
-    "sig_dip_in_uptrend",
     "rk_ret_1d",
     "rk_ret_7d",
     "rk_ret_30d",
@@ -75,45 +41,45 @@
     "rk_sig_dip_in_uptrend"
   ],
   "exam": {
-    "model": "logistic C=0.1975 [with_ranks]",
-    "winner": "champion",
+    "model": "trees+linear ensemble lr=0.0301 leaves=7 min_leaf=1000 C=0.0211 [ranks_only]",
+    "winner": "challenger",
     "champion_auc": 0.5514,
-    "challenger_auc": 0.5514,
+    "challenger_auc": 0.5556,
     "test_period": "2026-05-22 to 2026-11-18",
     "test_rows": 76248,
-    "accuracy": 53.3,
+    "accuracy": 53.8,
     "accuracy_if_you_always_guessed_the_majority": 50.1,
-    "auc": 0.5514,
+    "auc": 0.5556,
     "confidence_check": [
       {
         "model_said": "its worst 10% of picks",
         "times": 7625,
-        "actually_beat_average": 40.8,
-        "avg_7d_return": -2.06
+        "actually_beat_average": 39.8,
+        "avg_7d_return": -2.45
       },
       {
         "model_said": "next 20%",
         "times": 15250,
-        "actually_beat_average": 47.6,
-        "avg_7d_return": -0.84
+        "actually_beat_average": 46.9,
+        "avg_7d_return": -1.28
       },
       {
         "model_said": "middle 40%",
         "times": 30498,
-        "actually_beat_average": 49.0,
-        "avg_7d_return": -1.2
+        "actually_beat_average": 49.4,
+        "avg_7d_return": -1.06
       },
       {
         "model_said": "next 20%",
         "times": 15250,
-        "actually_beat_average": 54.7,
-        "avg_7d_return": -0.93
+        "actually_beat_average": 55.8,
+        "avg_7d_return": -0.59
       },
       {
         "model_said": "its best 10% of picks",
         "times": 7625,
-        "actually_beat_average": 58.2,
-        "avg_7d_return": -1.02
+        "actually_beat_average": 56.9,
+        "avg_7d_return": -0.96
       }
     ],
     "model_trusted": true
@@ -173,13 +139,6 @@
   },
   "buy_and_hold_avg_7d_return_test": -1.14,
   "history": [
-    {
-      "date": "2026-11-23 06:47",
-      "auc": 0.5084,
-      "winner": "champion",
-      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
-      "coin_days": 459198
-    },
     {
       "date": "2026-11-23 07:03",
       "auc": 0.5084,
@@ -1572,9 +1531,30 @@
       "winner": "champion",
       "model": "logistic C=0.1975 [with_ranks]",
       "coin_days": 460446
+    },
+    {
+      "date": "2026-11-25 08:33",
+      "auc": 0.5556,
+      "winner": "challenger",
+      "model": "trees+linear ensemble lr=0.0301 leaves=7 min_leaf=1000 C=0.0211 [ranks_only]",
+      "coin_days": 460446
     }
   ],
   "leaderboard": [
+    {
+      "config": {
+        "kind": "ens",
+        "C": 0.0211,
+        "learning_rate": 0.0301,
+        "max_leaf_nodes": 7,
+        "min_samples_leaf": 1000,
+        "l2": 1.627,
+        "max_iter": 100,
+        "max_features": 1.0,
+        "features": "ranks_only"
+      },
+      "val_auc": 0.5534
+    },
     {
       "config": {
         "kind": "logreg",
@@ -1601,31 +1581,17 @@
     },
     {
       "config": {
-        "kind": "hgb",
-        "C": 0.2237,
-        "learning_rate": 0.0561,
-        "max_leaf_nodes": 7,
-        "min_samples_leaf": 500,
-        "l2": 2.55,
+        "kind": "ens",
+        "C": 0.048,
+        "learning_rate": 0.0267,
+        "max_leaf_nodes": 31,
+        "min_samples_leaf": 2000,
+        "l2": 0.972,
         "max_iter": 200,
         "max_features": 0.5,
-        "features": "all"
+        "features": "no_strategy_signals"
       },
-      "val_auc": 0.5477
-    },
-    {
-      "config": {
-        "kind": "hgb",
-        "C": 0.0197,
-        "learning_rate": 0.0239,
-        "max_leaf_nodes": 7,
-        "min_samples_leaf": 2000,
-        "l2": 0.325,
-        "max_iter": 500,
-        "max_features": 1.0,
-        "features": "all"
-      },
-      "val_auc": 0.547
+      "val_auc": 0.5465
     },
     {
       "config": {
@@ -1658,30 +1624,30 @@
     {
       "config": {
         "kind": "hgb",
-        "C": 0.0034,
-        "learning_rate": 0.0164,
+        "C": 0.0053,
+        "learning_rate": 0.0975,
         "max_leaf_nodes": 48,
-        "min_samples_leaf": 1000,
-        "l2": 0.269,
-        "max_iter": 200,
+        "min_samples_leaf": 100,
+        "l2": 0.258,
+        "max_iter": 100,
         "max_features": 0.5,
         "features": "no_market_mood"
       },
-      "val_auc": 0.5392
+      "val_auc": 0.5389
     },
     {
       "config": {
         "kind": "hgb",
-        "C": 0.0626,
-        "learning_rate": 0.0428,
-        "max_leaf_nodes": 31,
-        "min_samples_leaf": 2000,
-        "l2": 1.03,
-        "max_iter": 300,
-        "max_features": 0.5,
-        "features": "ranks_only"
+        "C": 0.0346,
+        "learning_rate": 0.0271,
+        "max_leaf_nodes": 48,
+        "min_samples_leaf": 100,
+        "l2": 8.365,
+        "max_iter": 200,
+        "max_features": 0.7,
+        "features": "price_volume_only"
       },
-      "val_auc": 0.5384
+      "val_auc": 0.5377
     }
   ],
   "call_review": {
@@ -1711,8 +1677,8 @@
         "calls": 18,
         "right": 16,
         "right_pct": 88.9,
-        "avg_7d_return_pct": -10.36,
-        "btc_same_weeks_pct": -6.72,
+        "avg_7d_return_pct": -10.32,
+        "btc_same_weeks_pct": -6.54,
         "beat_btc": 8,
         "beat_btc_of": 18
       },
@@ -1720,8 +1686,8 @@
         "calls": 3,
         "right": 3,
         "right_pct": 100.0,
-        "avg_7d_return_pct": -41.28,
-        "btc_same_weeks_pct": -7.48,
+        "avg_7d_return_pct": -41.19,
+        "btc_same_weeks_pct": -7.2,
         "beat_btc": 3,
         "beat_btc_of": 3
       },
