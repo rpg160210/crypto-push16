@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-11-25T06:59+00:00",
+  "trained_at": "2026-11-25T07:04+00:00",
   "demo_data": false,
   "coins": 645,
   "coin_days": 460446,
@@ -76,8 +76,8 @@
   ],
   "exam": {
     "model": "logistic C=0.1975 [with_ranks]",
-    "winner": "challenger",
-    "champion_auc": 0.5439,
+    "winner": "champion",
+    "champion_auc": 0.5514,
     "challenger_auc": 0.5514,
     "test_period": "2026-05-22 to 2026-11-18",
     "test_rows": 76248,
@@ -173,13 +173,6 @@
   },
   "buy_and_hold_avg_7d_return_test": -1.14,
   "history": [
-    {
-      "date": "2026-11-23 05:03",
-      "auc": 0.5084,
-      "winner": "champion",
-      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
-      "coin_days": 459198
-    },
     {
       "date": "2026-11-23 05:18",
       "auc": 0.5084,
@@ -1572,6 +1565,13 @@
       "winner": "challenger",
       "model": "logistic C=0.1975 [with_ranks]",
       "coin_days": 460446
+    },
+    {
+      "date": "2026-11-25 07:04",
+      "auc": 0.5514,
+      "winner": "champion",
+      "model": "logistic C=0.1975 [with_ranks]",
+      "coin_days": 460446
     }
   ],
   "leaderboard": [
@@ -1613,78 +1613,59 @@
     },
     {
       "config": {
-        "kind": "logreg",
-        "C": 0.2544,
-        "features": "no_strategy_signals"
+        "kind": "ens",
+        "C": 0.0196,
+        "learning_rate": 0.0386,
+        "max_leaf_nodes": 7,
+        "min_samples_leaf": 200,
+        "l2": 0.116,
+        "max_iter": 300,
+        "max_features": 1.0,
+        "features": "no_market_mood"
       },
-      "val_auc": 0.5439
+      "val_auc": 0.5444
     },
     {
       "config": {
-        "kind": "hgb",
-        "learning_rate": 0.023,
-        "max_leaf_nodes": 7,
-        "min_samples_leaf": 200,
-        "l2": 4.575,
-        "max_iter": 200,
+        "kind": "ens",
+        "C": 0.0518,
+        "learning_rate": 0.0558,
+        "max_leaf_nodes": 15,
+        "min_samples_leaf": 500,
+        "l2": 0.231,
+        "max_iter": 500,
         "max_features": 0.5,
         "features": "no_market_mood"
       },
-      "val_auc": 0.5435
+      "val_auc": 0.5426
     },
     {
       "config": {
         "kind": "hgb",
-        "learning_rate": 0.147,
-        "max_leaf_nodes": 7,
-        "min_samples_leaf": 500,
-        "l2": 0.525,
+        "C": 0.0077,
+        "learning_rate": 0.108,
+        "max_leaf_nodes": 15,
+        "min_samples_leaf": 100,
+        "l2": 4.09,
         "max_iter": 100,
         "max_features": 1.0,
-        "features": "no_market_mood"
+        "features": "price_volume_only"
       },
-      "val_auc": 0.5425
+      "val_auc": 0.54
     },
     {
       "config": {
-        "kind": "hgb",
-        "C": 0.3436,
-        "learning_rate": 0.0427,
-        "max_leaf_nodes": 48,
-        "min_samples_leaf": 500,
-        "l2": 5.462,
-        "max_iter": 100,
-        "max_features": 0.7,
-        "features": "all"
-      },
-      "val_auc": 0.5425
-    },
-    {
-      "config": {
-        "kind": "hgb",
-        "C": 0.0041,
-        "learning_rate": 0.1393,
+        "kind": "ens",
+        "C": 0.0336,
+        "learning_rate": 0.1145,
         "max_leaf_nodes": 24,
         "min_samples_leaf": 100,
-        "l2": 1.859,
-        "max_iter": 100,
-        "max_features": 1.0,
-        "features": "no_strategy_signals"
-      },
-      "val_auc": 0.5406
-    },
-    {
-      "config": {
-        "kind": "hgb",
-        "learning_rate": 0.0174,
-        "max_leaf_nodes": 24,
-        "min_samples_leaf": 200,
-        "l2": 0.522,
-        "max_iter": 100,
+        "l2": 0.118,
+        "max_iter": 500,
         "max_features": 0.7,
-        "features": "no_market_mood"
+        "features": "ranks_only"
       },
-      "val_auc": 0.5401
+      "val_auc": 0.5356
     }
   ],
   "call_review": {
@@ -1714,7 +1695,7 @@
         "calls": 17,
         "right": 15,
         "right_pct": 88.2,
-        "avg_7d_return_pct": -10.54,
+        "avg_7d_return_pct": -10.56,
         "btc_same_weeks_pct": -6.61,
         "beat_btc": 8,
         "beat_btc_of": 17
