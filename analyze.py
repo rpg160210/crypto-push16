@@ -42,7 +42,8 @@ class TooNew(Exception):
     """Coin hasn't traded long enough for the strategies to work (normal, not an error)."""
 
 
-def analyze_coin(coin, bundle, btc, load):
+def prepare_coin(coin, btc, load):
+    """Price history + today's indicators for one coin."""
     df = load(coin)
     listed = df.attrs.get("listed")
     df = df[(df["close"] > 0) & (df["volume"] > 0)]
@@ -50,8 +51,34 @@ def analyze_coin(coin, bundle, btc, load):
     if len(df) < 120:
         raise TooNew()
     feat = core.build_features(df, btc).replace([np.inf, -np.inf], np.nan)
-    today = feat.iloc[[-1]]
-    p_up = float(bundle["model"].predict_proba(today[bundle["columns"]])[:, 1][0])
+    return df, feat.iloc[[-1]]
+
+
+def rank_today(prepared, bundle):
+    """Rank every coin's inputs against all the other coins analyzed in this run
+    (the model was trained on these rankings). With too few coins they stay empty."""
+    base = bundle.get("rank_base")
+    if not base or not prepared:
+        return prepared
+    rows = pd.concat([t for _, _, t in prepared]).reset_index(drop=True)
+    ranked = core.add_ranks(rows.reindex(columns=base), base, by=None)
+    out = []
+    for i, (coin, df, today) in enumerate(prepared):
+        extra = ranked.iloc[[i]][[core.RANK_PREFIX + c for c in base]]
+        extra.index = today.index
+        out.append((coin, df, pd.concat([today, extra], axis=1)))
+    return out
+
+
+def analyze_coin(coin, bundle, btc, load):
+    """One coin on its own (used by the hype radar). Rank inputs stay empty."""
+    df, today = prepare_coin(coin, btc, load)
+    return score_coin(coin, bundle, btc, df, today)
+
+
+def score_coin(coin, bundle, btc, df, today):
+    p_up = float(bundle["model"].predict_proba(today.reindex(columns=bundle["columns"]))[:, 1][0])
+    relative = bundle.get("label") == "beat_average"
 
     votes, consensus = {}, 0.0
     for name, w in bundle["strategy_weights"].items():
@@ -74,7 +101,9 @@ def analyze_coin(coin, bundle, btc, load):
         if core.ema(b, 20).iloc[-1] <= core.ema(b, 50).iloc[-1]:
             idx, weather_blocked = 2, True
 
-    tilt = p_up if trusted else None  # untrusted model -> neutral simulations
+    # Only tilt the simulations when the model predicts up/down. A "beats the average coin"
+    # model says nothing about the whole market's direction, so simulations stay neutral.
+    tilt = p_up if trusted and not relative else None
     risk7, risk30 = (core.risk_table(df["close"], 7, tilt),
                      core.risk_table(df["close"], 30, tilt))
     d = risk30["chance_down_25"]
@@ -87,6 +116,7 @@ def analyze_coin(coin, bundle, btc, load):
         "verdict": VERDICTS[idx],
         "score": round(score, 2),
         "model_trusted": trusted,
+        "model_relative": relative,
         "model_chance_up_7d": round(p_up * 100, 1) if trusted else None,
         "strategy_consensus": round(consensus, 2),
         "votes": votes,
@@ -115,7 +145,9 @@ def rule_opinion(r):
         "STRONG SELL": "I'd get out of this one.",
     }[r["verdict"]]
     n = lambda xs: f"{len(xs)} {'trusted strategy says' if len(xs) == 1 else 'trusted strategies say'}"
-    why = ((f" The model gives it a {p}% chance of being higher in a week; " if p is not None
+    why = ((f" The model gives it a {p}% chance of beating the average coin this week; "
+            if p is not None and r.get("model_relative") else
+            f" The model gives it a {p}% chance of being higher in a week; " if p is not None
             else " Going by the strategies that have worked lately, ")
            + f"{n(buys)} buy ({', '.join(buys) or 'none'}) and "
            f"{n(sells)} sell ({', '.join(sells) or 'none'}).")
@@ -190,7 +222,8 @@ def print_report(r):
     if r.get("biggest_risk"):
         print(f"Biggest risk: {r['biggest_risk']}")
     if r["model_trusted"]:
-        print(f"\nModel: {r['model_chance_up_7d']}% chance it's higher in 7 days")
+        print(f"\nModel: {r['model_chance_up_7d']}% chance "
+              f"{'to beat the average coin' if r.get('model_relative') else 'it is higher'} in 7 days")
     else:
         print("\nModel: switched off (failed its last exam) - verdict uses strategies only")
     print("Strategy votes:", ", ".join(f"{k}={v['vote']}" for k, v in r["votes"].items()))
@@ -243,16 +276,24 @@ def main():
             time.sleep(2.2 if core.CG_KEY else 6)  # CoinGecko free rate limit
             return df
 
-    results, skipped, too_new = [], [], []
+    results, skipped, too_new, prepared = [], [], [], []
     for coin in coins:
         try:
-            results.append(analyze_coin(coin, bundle, btc, load))
+            df, today = prepare_coin(coin, btc, load)
+            prepared.append((coin, df, today))
         except TooNew:
             too_new.append(coin)  # reported once at the end, not as an error
         except Exception as e:
             skipped.append(coin)
             hint = "" if binance_mode else " (is that the CoinGecko ID? e.g. 'ripple' not 'xrp')"
             print(f"!! skipped {coin}: {e}{hint}", file=sys.stderr)
+    # Rank all coins against each other, then score them.
+    for coin, df, today in rank_today(prepared, bundle):
+        try:
+            results.append(score_coin(coin, bundle, btc, df, today))
+        except Exception as e:
+            skipped.append(coin)
+            print(f"!! skipped {coin}: {e}", file=sys.stderr)
     results.sort(key=lambda r: -r["score"])
 
     # Big lists: full write-ups only for the strongest calls, a table for everything.
@@ -291,6 +332,7 @@ def main():
             "mode": "binance" if binance_mode else "watchlist",
             "model_trusted": bool(bundle.get("model_trusted", True)),
             "btc_filter": bool(bundle.get("btc_filter")),
+            "relative": bundle.get("label") == "beat_average",
             "too_new": len(too_new),
             "coins": [{
                 "c": r["coin"], "p": r["price"], "v": r["verdict"], "s": r["score"],
@@ -348,7 +390,8 @@ def push_detail(r):
            "SELL": "chart_with_downwards_trend", "STRONG SELL": "rotating_light"}[r["verdict"]]
     core.notify(
         f"{r['verdict']}: {r['coin'].upper()} @ {fmt_price(r['price'])} | risk {r['risk_level']}",
-        f"{r['opinion']}\n\n7d: {up(r)} chance up\n"
+        f"{r['opinion']}\n\n7d: {up(r)} chance "
+        f"{'to beat the average coin' if r.get('model_relative') else 'up'}\n"
         f"30d: {k['chance_up_10']}% chance +10% | {k['chance_down_10']}% chance -10% | "
         f"{k['chance_down_25']}% chance -25%"
         + (f"\n{core.track_record('analyze', r['verdict'])}" if core.track_record('analyze', r['verdict']) else ""),

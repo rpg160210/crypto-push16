@@ -302,8 +302,48 @@ def add_labels(feat: pd.DataFrame) -> pd.DataFrame:
     return feat
 
 
+# --- Ranking coins against each other ---------------------------------------
+# Every input is also turned into a rank among all coins that day (0 = lowest,
+# 1 = highest), e.g. "top 5% momentum today". Ranks only make sense with enough
+# coins, so with fewer than MIN_RANK_COINS they're left empty.
+RANK_PREFIX = "rk_"
+MIN_RANK_COINS = 40
+
+
+def add_ranks(df: pd.DataFrame, cols: list[str], by: str | None = "date") -> pd.DataFrame:
+    if by:
+        r = df.groupby(by)[cols].rank(pct=True)
+        small = df.groupby(by)[cols[0]].transform("size") < MIN_RANK_COINS
+        r[small.to_numpy()] = np.nan
+    else:
+        r = df[cols].rank(pct=True) if len(df) >= MIN_RANK_COINS else pd.DataFrame(np.nan, index=df.index, columns=cols)
+    r.columns = [RANK_PREFIX + c for c in cols]
+    return pd.concat([df.drop(columns=[c for c in r.columns if c in df.columns]), r], axis=1)
+
+
+class EnsembleModel:
+    """Averages the predictions of several models (here a tree model + a linear model).
+    Different kinds of models make different mistakes, so the average is steadier."""
+
+    def __init__(self, models):
+        self.models = models
+
+    def fit(self, X, y, sample_weight=None):
+        for m in self.models:
+            if sample_weight is None:
+                m.fit(X, y)
+            elif hasattr(m, "steps"):
+                m.fit(X, y, **{f"{m.steps[-1][0]}__sample_weight": sample_weight})
+            else:
+                m.fit(X, y, sample_weight=sample_weight)
+        return self
+
+    def predict_proba(self, X):
+        return np.mean([m.predict_proba(X) for m in self.models], axis=0)
+
+
 def feature_columns(df):
-    return [c for c in df.columns if c not in ("close", "fwd_ret", "coin", "date")]
+    return [c for c in df.columns if c not in ("close", "fwd_ret", "coin", "date", "rel")]
 
 
 # ------------------------------------------------------------ Monte Carlo ---

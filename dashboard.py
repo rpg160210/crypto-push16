@@ -165,8 +165,9 @@ GUIDE = [
                 "STRONG means the trusted strategies all agree."),
     ("Score", "From -1 (very bearish) to +1 (very bullish). It combines the strategies that worked best "
               "recently (and the AI model, when it has passed its exam)."),
-    ("Chance up", "The AI model's estimate that the price is higher in 7 days. Shows '-' when the model is "
-                  "switched off because it couldn't beat a coin flip on its last exam."),
+    ("Beats avg coin", "The AI model's estimate that this coin does better than the average coin over the next "
+                       "7 days. It ranks coins against each other instead of guessing where the whole market goes. "
+                       "Shows '-' when the model is switched off because it failed its last exam."),
     ("Risk level", "From 20,000 simulated futures based on the coin's own past swings: LOW, MEDIUM, HIGH or "
                    "EXTREME, by the chance of falling 25%+ within 30 days."),
     ("Strategies", "Classic trading rules (trend following, momentum, MACD, Turtle breakout, ...). Only the "
@@ -420,7 +421,7 @@ def build_page():
                    ("SELL", "Sell"), ("STRONG SELL", "Strong sell"), ("SELLS", "All sells")))}
 <span class="muted" id="calls-count" style="margin-left:auto;font-size:13px"></span></div>
 <div class="tw"><table><thead><tr><th data-k="c">Coin</th><th>Verdict</th><th class="n" data-k="s">Score</th>
-<th class="n" data-k="up">Chance up 7d</th><th data-k="rl">Risk</th><th class="n" data-k="d25">Crash risk 30d</th>
+<th class="n" data-k="up">Beats avg coin 7d</th><th data-k="rl">Risk</th><th class="n" data-k="d25">Crash risk 30d</th>
 <th class="n" data-k="u25">+25% chance 30d</th><th class="n" data-k="ch7">Last 7d</th><th class="n" data-k="p">Price</th></tr></thead>
 <tbody id="calls-body"></tbody></table></div>
 <div class="more" id="calls-more"><button>Show more</button></div>

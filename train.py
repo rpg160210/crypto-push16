@@ -40,6 +40,8 @@ import core
 
 
 MIN_AUC = 0.53  # below this the model is basically guessing and gets switched off
+EXAM_DAYS = 180         # the exam = the most recent 6 months
+VAL_DAYS = 120          # settings are chosen on the 4 months before that
 MIN_IMPROVEMENT = 0.003  # a challenger must beat the champion by this much to replace it
 KEEP_BEST = 3            # best settings from earlier runs that get re-tested every run
 LEADERBOARD_SIZE = 15
@@ -50,13 +52,24 @@ SEARCH_ROWS = 250_000    # rows used while searching settings (keeps runs fast)
 MARKET = ("btc_", "fear_greed", "vs_btc")
 EXTRA = ("atr_pct", "close_in_range", "taker_buy", "trades_ratio", "coin_age_days",
          "ret_90d", "drawdown_365d")
-FEATURE_SETS = {
-    "all": lambda c: True,
-    "no_strategy_signals": lambda c: not c.startswith("sig_"),
-    "no_market_mood": lambda c: not c.startswith(MARKET),
-    "price_volume_only": lambda c: not c.startswith(MARKET + EXTRA),
+RK = core.RANK_PREFIX
+FEATURE_SETS = {  # "rk_" inputs = the same signal ranked against all coins that day
+    "with_ranks": lambda c: True,
+    "ranks_only": lambda c: c.startswith(RK),
+    "all": lambda c: not c.startswith(RK),
+    "no_strategy_signals": lambda c: not c.startswith(("sig_", RK)),
+    "no_market_mood": lambda c: not c.startswith(MARKET + (RK,)),
+    "price_volume_only": lambda c: not c.startswith(MARKET + EXTRA + (RK,)),
 }
-STARTERS = [
+# The winners of the walk-forward experiment on real data (experiment.py): predicting
+# "beats the average coin" with ranked inputs and a tree+linear ensemble.
+BEST_KNOWN = [
+    {"kind": "ens", "learning_rate": 0.05, "max_leaf_nodes": 15, "min_samples_leaf": 1000,
+     "l2": 1.0, "max_iter": 200, "max_features": 1.0, "C": 0.05, "features": "with_ranks"},
+    {"kind": "ens", "learning_rate": 0.05, "max_leaf_nodes": 15, "min_samples_leaf": 1000,
+     "l2": 1.0, "max_iter": 200, "max_features": 1.0, "C": 0.05, "features": "ranks_only"},
+]
+STARTERS = BEST_KNOWN + [
     {"kind": "logreg", "C": 0.1, "features": "all"},
     {"kind": "hgb", "learning_rate": 0.05, "max_leaf_nodes": 8, "min_samples_leaf": 500,
      "l2": 1.0, "max_iter": 150, "max_features": 1.0, "features": "all"},
@@ -68,10 +81,12 @@ STARTERS = [
 def random_config(rng) -> dict:
     """A brand-new combination of model settings to try."""
     features = str(rng.choice(list(FEATURE_SETS)))
-    if rng.random() < 0.3:
+    roll = rng.random()
+    if roll < 0.25:
         return {"kind": "logreg", "C": round(float(10 ** rng.uniform(-2.5, 0.5)), 4),
                 "features": features}
-    return {"kind": "hgb",
+    return {"kind": "ens" if roll < 0.6 else "hgb",
+            "C": round(float(10 ** rng.uniform(-2.5, 0)), 4),
             "learning_rate": round(float(10 ** rng.uniform(-1.8, -0.8)), 4),
             "max_leaf_nodes": int(rng.choice([7, 15, 24, 31, 48])),
             "min_samples_leaf": int(rng.choice([100, 200, 500, 1000, 2000])),
@@ -85,6 +100,9 @@ def make_model(cfg):
     if cfg["kind"] == "logreg":
         return make_pipeline(SimpleImputer(strategy="median"), StandardScaler(),
                              LogisticRegression(C=cfg["C"], max_iter=1000))
+    if cfg["kind"] == "ens":  # tree model + linear model, predictions averaged
+        return core.EnsembleModel([make_model({**cfg, "kind": "hgb"}),
+                                   make_model({**cfg, "kind": "logreg", "C": cfg.get("C", 0.05)})])
     return HistGradientBoostingClassifier(
         learning_rate=cfg["learning_rate"], max_leaf_nodes=cfg["max_leaf_nodes"],
         min_samples_leaf=cfg["min_samples_leaf"], l2_regularization=cfg["l2"],
@@ -159,6 +177,7 @@ def review_past_calls(demo):
                         "buy": buy, "btc_ret": btc_ret})
         if c.get("features"):
             rows.append({**c["features"], "date": t0.normalize(), "coin": c["coin"], "fwd_ret": ret,
+                         "rel": ret - (btc_ret or 0.0),
                          "_w": PRACTICE_WEIGHT if c.get("practice") else CALL_WEIGHT})
 
     by = {}
@@ -224,6 +243,9 @@ def notify_review(review):
 
 
 def describe(cfg) -> str:
+    if cfg["kind"] == "ens":
+        return (f"trees+linear ensemble lr={cfg['learning_rate']} leaves={cfg['max_leaf_nodes']} "
+                f"min_leaf={cfg['min_samples_leaf']} C={cfg.get('C')} [{cfg['features']}]")
     if cfg["kind"] == "logreg":
         return f"logistic C={cfg['C']} [{cfg['features']}]"
     return (f"trees lr={cfg['learning_rate']} leaves={cfg['max_leaf_nodes']} "
@@ -310,27 +332,33 @@ def main():
 
     data = load_dataset(args.coins, args.demo, args.source)
     labeled = data.dropna(subset=["fwd_ret"])
-    labeled = labeled[labeled["fwd_ret"].abs() > 1e-9]
-    cols = core.feature_columns(labeled)
+    labeled = labeled[labeled["fwd_ret"].abs() > 1e-9].copy()
+    # What the model predicts: will this coin BEAT THE AVERAGE COIN over the next 7 days?
+    # Whether the whole market goes up or down is close to unpredictable; which coins do
+    # better than the rest is where the (small) real edge is - tested in experiment.py.
+    labeled["rel"] = labeled["fwd_ret"] - labeled.groupby("date")["fwd_ret"].transform("median")
+    base_cols = core.feature_columns(labeled)
     # Skip inputs that are (almost) empty - e.g. a data source that was down today.
-    empty = [c for c in cols if labeled[c].notna().mean() < 0.05]
+    empty = [c for c in base_cols if labeled[c].notna().mean() < 0.05]
     if empty:
         print(f"Not using (no data this time): {', '.join(empty)}")
-    cols = [c for c in cols if c not in empty]
+    base_cols = [c for c in base_cols if c not in empty]
+    labeled = core.add_ranks(labeled, base_cols)        # + every input ranked among all coins that day
+    cols = base_cols + [core.RANK_PREFIX + c for c in base_cols]
     n_coins = labeled["coin"].nunique()
     print(f"\nDataset: {len(labeled):,} coin-days from {n_coins} coins, {len(cols)} inputs each")
 
     # --- split by DATE: train on the past, test on the most recent stretch ---
+    # Exam = the most recent EXAM_DAYS, choosing settings = the VAL_DAYS before that.
     dates = np.sort(labeled["date"].unique())
-    test_start = dates[int(len(dates) * 0.75)]
     gap = pd.Timedelta(days=core.HORIZON)  # stop labels from peeking into the test period
+    test_start = pd.Timestamp(dates[-1]) - pd.Timedelta(days=EXAM_DAYS)
+    val_start = test_start - gap - pd.Timedelta(days=VAL_DAYS)
     train = labeled[labeled["date"] < test_start - gap]
     test = labeled[labeled["date"] >= test_start]
-    tr_dates = np.sort(train["date"].unique())
-    val_start = tr_dates[int(len(tr_dates) * 0.8)]
     fit = train[train["date"] < val_start - gap]
     val = train[train["date"] >= val_start]
-    y = lambda d: (d["fwd_ret"] > 0).astype(int)
+    y = lambda d: (d["rel"] > 0).astype(int)
 
     # --- Review the bot's own past calls and learn from them ---
     review, feedback = review_past_calls(args.demo)
@@ -370,6 +398,8 @@ def main():
     candidates = [c["config"] for c in leaderboard[:KEEP_BEST]]  # best settings found so far
     if not candidates:
         candidates = list(STARTERS)
+    have = {json.dumps(c, sort_keys=True) for c in candidates}
+    candidates += [c for c in BEST_KNOWN if json.dumps(c, sort_keys=True) not in have]
     candidates += [random_config(rng) for _ in range(args.explore)]  # brand-new ideas
 
     print(f"\nSearching {len(candidates)} model settings "
@@ -445,12 +475,14 @@ def main():
     }
     # How right is it when it's confident?
     buckets = []
-    for lo, hi in [(0, .35), (.35, .45), (.45, .55), (.55, .65), (.65, 1.01)]:
-        mask = (p >= lo) & (p < hi)
+    qs = np.quantile(p, [0, .1, .3, .7, .9, 1])
+    names = ["its worst 10% of picks", "next 20%", "middle 40%", "next 20%", "its best 10% of picks"]
+    for name, lo, hi in zip(names, qs[:-1], qs[1:]):
+        mask = (p >= lo) & (p <= hi if hi == qs[-1] else p < hi)
         if mask.sum() >= 30:
-            buckets.append({"model_said": f"{lo:.0%}-{min(hi, 1):.0%} chance up",
+            buckets.append({"model_said": name,
                             "times": int(mask.sum()),
-                            "actually_went_up": round(float(yt[mask].mean()) * 100, 1),
+                            "actually_beat_average": round(float(yt[mask].mean()) * 100, 1),
                             "avg_7d_return": round(float(test["fwd_ret"][mask].mean()) * 100, 2)})
     exam["confidence_check"] = buckets
 
@@ -493,6 +525,7 @@ def main():
     exam["model_trusted"] = model_trusted
     joblib.dump({"model": final_model, "columns": cols, "strategy_weights": weights,
                  "model_trusted": model_trusted, "auc": exam["auc"], "config": best_cfg,
+                 "label": "beat_average", "rank_base": base_cols,
                  "btc_filter": weather["enabled"],
                  "demo": args.demo}, core.ROOT / "model.joblib")
     report = {
@@ -517,9 +550,9 @@ def main():
     print(f"Model in use: {best_name}  ({'new this run' if winner == 'challenger' else 'kept from before'})")
     print(f"Accuracy: {exam['accuracy']}%  (always guessing the majority would get "
           f"{exam['accuracy_if_you_always_guessed_the_majority']}%)   AUC {exam['auc']}")
-    print("When the model said...")
+    print("How its picks did on the exam (ranked by the model):")
     for b in buckets:
-        print(f"  {b['model_said']:18} -> went up {b['actually_went_up']}% of the time "
+        print(f"  {b['model_said']:22} -> beat the average coin {b['actually_beat_average']}% of the time "
               f"({b['times']:,} cases, avg 7d {b['avg_7d_return']:+}%)")
     if not model_trusted:
         print(f"!! AUC {exam['auc']} is below {MIN_AUC}: the model has no real edge, so it is "
