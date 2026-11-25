@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-11-25T09:18+00:00",
+  "trained_at": "2026-11-25T09:34+00:00",
   "demo_data": false,
   "coins": 645,
   "coin_days": 460446,
@@ -139,13 +139,6 @@
   },
   "buy_and_hold_avg_7d_return_test": -1.14,
   "history": [
-    {
-      "date": "2026-11-23 07:48",
-      "auc": 0.5084,
-      "winner": "champion",
-      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
-      "coin_days": 459198
-    },
     {
       "date": "2026-11-23 08:04",
       "auc": 0.5084,
@@ -1538,6 +1531,13 @@
       "winner": "champion",
       "model": "trees+linear ensemble lr=0.0301 leaves=7 min_leaf=1000 C=0.0211 [ranks_only]",
       "coin_days": 460446
+    },
+    {
+      "date": "2026-11-25 09:34",
+      "auc": 0.5556,
+      "winner": "champion",
+      "model": "trees+linear ensemble lr=0.0301 leaves=7 min_leaf=1000 C=0.0211 [ranks_only]",
+      "coin_days": 460446
     }
   ],
   "leaderboard": [
@@ -1573,6 +1573,28 @@
     },
     {
       "config": {
+        "kind": "logreg",
+        "C": 0.0053,
+        "features": "ranks_only"
+      },
+      "val_auc": 0.5506
+    },
+    {
+      "config": {
+        "kind": "ens",
+        "C": 0.1099,
+        "learning_rate": 0.0646,
+        "max_leaf_nodes": 7,
+        "min_samples_leaf": 1000,
+        "l2": 0.765,
+        "max_iter": 300,
+        "max_features": 0.5,
+        "features": "all"
+      },
+      "val_auc": 0.5467
+    },
+    {
+      "config": {
         "kind": "ens",
         "learning_rate": 0.05,
         "max_leaf_nodes": 15,
@@ -1602,58 +1624,30 @@
     {
       "config": {
         "kind": "ens",
-        "C": 0.1529,
-        "learning_rate": 0.0498,
-        "max_leaf_nodes": 15,
-        "min_samples_leaf": 500,
-        "l2": 8.725,
-        "max_iter": 500,
-        "max_features": 0.5,
-        "features": "no_market_mood"
-      },
-      "val_auc": 0.5426
-    },
-    {
-      "config": {
-        "kind": "hgb",
-        "C": 0.0099,
-        "learning_rate": 0.0246,
-        "max_leaf_nodes": 15,
-        "min_samples_leaf": 100,
-        "l2": 1.111,
-        "max_iter": 300,
-        "max_features": 1.0,
-        "features": "no_market_mood"
-      },
-      "val_auc": 0.5413
-    },
-    {
-      "config": {
-        "kind": "hgb",
-        "C": 0.0036,
-        "learning_rate": 0.0929,
+        "C": 0.0066,
+        "learning_rate": 0.0341,
         "max_leaf_nodes": 24,
-        "min_samples_leaf": 200,
-        "l2": 7.285,
-        "max_iter": 100,
+        "min_samples_leaf": 100,
+        "l2": 2.929,
+        "max_iter": 500,
         "max_features": 0.7,
-        "features": "with_ranks"
+        "features": "no_market_mood"
       },
-      "val_auc": 0.5394
+      "val_auc": 0.5421
     },
     {
       "config": {
-        "kind": "hgb",
-        "C": 0.0815,
-        "learning_rate": 0.0896,
-        "max_leaf_nodes": 31,
+        "kind": "ens",
+        "C": 0.0078,
+        "learning_rate": 0.1432,
+        "max_leaf_nodes": 24,
         "min_samples_leaf": 100,
-        "l2": 2.492,
-        "max_iter": 300,
+        "l2": 0.272,
+        "max_iter": 200,
         "max_features": 1.0,
-        "features": "with_ranks"
+        "features": "no_market_mood"
       },
-      "val_auc": 0.533
+      "val_auc": 0.54
     }
   ],
   "call_review": {
@@ -1683,8 +1677,8 @@
         "calls": 18,
         "right": 16,
         "right_pct": 88.9,
-        "avg_7d_return_pct": -10.24,
-        "btc_same_weeks_pct": -6.61,
+        "avg_7d_return_pct": -10.21,
+        "btc_same_weeks_pct": -6.7,
         "beat_btc": 8,
         "beat_btc_of": 18
       },
@@ -1693,7 +1687,7 @@
         "right": 3,
         "right_pct": 100.0,
         "avg_7d_return_pct": -41.4,
-        "btc_same_weeks_pct": -7.32,
+        "btc_same_weeks_pct": -7.45,
         "beat_btc": 3,
         "beat_btc_of": 3
       },
