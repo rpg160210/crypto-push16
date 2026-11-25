@@ -1,0 +1,20 @@
+name: experiment
+on:
+  workflow_dispatch:   # run by hand only - compares model ideas, changes nothing
+permissions:
+  contents: read
+jobs:
+  experiment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - uses: actions/cache/restore@v5   # reuse the price history training already downloaded
+        with:
+          path: data
+          key: prices-none
+          restore-keys: prices-
+      - run: python experiment.py
