@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-11-25T08:04+00:00",
+  "trained_at": "2026-11-25T08:18+00:00",
   "demo_data": false,
   "coins": 645,
   "coin_days": 460446,
@@ -173,13 +173,6 @@
   },
   "buy_and_hold_avg_7d_return_test": -1.14,
   "history": [
-    {
-      "date": "2026-11-23 06:33",
-      "auc": 0.5084,
-      "winner": "champion",
-      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
-      "coin_days": 459198
-    },
     {
       "date": "2026-11-23 06:47",
       "auc": 0.5084,
@@ -1572,6 +1565,13 @@
       "winner": "champion",
       "model": "logistic C=0.1975 [with_ranks]",
       "coin_days": 460446
+    },
+    {
+      "date": "2026-11-25 08:18",
+      "auc": 0.5514,
+      "winner": "champion",
+      "model": "logistic C=0.1975 [with_ranks]",
+      "coin_days": 460446
     }
   ],
   "leaderboard": [
@@ -1586,10 +1586,32 @@
     {
       "config": {
         "kind": "logreg",
+        "C": 0.0154,
+        "features": "with_ranks"
+      },
+      "val_auc": 0.5513
+    },
+    {
+      "config": {
+        "kind": "logreg",
         "C": 0.0636,
         "features": "with_ranks"
       },
       "val_auc": 0.5513
+    },
+    {
+      "config": {
+        "kind": "hgb",
+        "C": 0.2237,
+        "learning_rate": 0.0561,
+        "max_leaf_nodes": 7,
+        "min_samples_leaf": 500,
+        "l2": 2.55,
+        "max_iter": 200,
+        "max_features": 0.5,
+        "features": "all"
+      },
+      "val_auc": 0.5477
     },
     {
       "config": {
@@ -1635,59 +1657,37 @@
     },
     {
       "config": {
-        "kind": "ens",
-        "C": 0.0369,
-        "learning_rate": 0.0482,
+        "kind": "hgb",
+        "C": 0.0034,
+        "learning_rate": 0.0164,
         "max_leaf_nodes": 48,
         "min_samples_leaf": 1000,
-        "l2": 6.829,
+        "l2": 0.269,
         "max_iter": 200,
-        "max_features": 0.7,
-        "features": "no_strategy_signals"
-      },
-      "val_auc": 0.545
-    },
-    {
-      "config": {
-        "kind": "logreg",
-        "C": 0.1254,
+        "max_features": 0.5,
         "features": "no_market_mood"
       },
-      "val_auc": 0.5446
+      "val_auc": 0.5392
     },
     {
       "config": {
         "kind": "hgb",
-        "C": 0.4694,
-        "learning_rate": 0.0214,
-        "max_leaf_nodes": 48,
-        "min_samples_leaf": 200,
-        "l2": 0.117,
-        "max_iter": 100,
-        "max_features": 1.0,
-        "features": "ranks_only"
-      },
-      "val_auc": 0.5442
-    },
-    {
-      "config": {
-        "kind": "hgb",
-        "C": 0.0259,
-        "learning_rate": 0.0535,
+        "C": 0.0626,
+        "learning_rate": 0.0428,
         "max_leaf_nodes": 31,
-        "min_samples_leaf": 500,
-        "l2": 0.814,
-        "max_iter": 200,
+        "min_samples_leaf": 2000,
+        "l2": 1.03,
+        "max_iter": 300,
         "max_features": 0.5,
         "features": "ranks_only"
       },
-      "val_auc": 0.5336
+      "val_auc": 0.5384
     }
   ],
   "call_review": {
-    "reviewed": 255,
-    "waiting_for_7_days": 119,
-    "overall_right_pct": 79.6,
+    "reviewed": 256,
+    "waiting_for_7_days": 130,
+    "overall_right_pct": 79.7,
     "by_call": {
       "analyze:STRONG BUY": {
         "calls": 1,
@@ -1708,20 +1708,20 @@
         "beat_btc_of": 232
       },
       "hype:AVOID": {
-        "calls": 17,
-        "right": 15,
-        "right_pct": 88.2,
-        "avg_7d_return_pct": -10.69,
-        "btc_same_weeks_pct": -6.73,
+        "calls": 18,
+        "right": 16,
+        "right_pct": 88.9,
+        "avg_7d_return_pct": -10.36,
+        "btc_same_weeks_pct": -6.72,
         "beat_btc": 8,
-        "beat_btc_of": 17
+        "beat_btc_of": 18
       },
       "hype:DON'T CHASE": {
         "calls": 3,
         "right": 3,
         "right_pct": 100.0,
-        "avg_7d_return_pct": -41.31,
-        "btc_same_weeks_pct": -7.49,
+        "avg_7d_return_pct": -41.28,
+        "btc_same_weeks_pct": -7.48,
         "beat_btc": 3,
         "beat_btc_of": 3
       },
