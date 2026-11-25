@@ -1,22 +1,17 @@
 {
-  "trained_at": "2026-11-24 12:40",
+  "trained_at": "2026-11-25 11:30",
   "demo_data": false,
   "coins": 149,
-  "simulated_trades": 429560,
-  "own_paper_trades_used": 14,
+  "simulated_trades": 428951,
+  "own_paper_trades_used": 18,
   "hold_hours": 12,
   "cost_per_trade_pct": 0.25,
   "exam": {
-    "auc": 0.5124,
+    "auc": 0.5202,
     "winner": "champion",
     "model": "trees lr=0.1151 leaves=31 min_leaf=200 l2=1.294 iters=200 feat=0.5 [no_strategy_signals]",
-    "signals": {
-      "threshold": 0.9422,
-      "trades": 441,
-      "win_rate": 44.9,
-      "avg_net_pct": 0.014
-    },
-    "take_every_trade_avg_net_pct": -0.437,
+    "signals": null,
+    "take_every_trade_avg_net_pct": -0.467,
     "market_filter": {
       "enabled": false,
       "why": "trading only in BTC uptrends didn't find an edge either"
@@ -137,21 +132,29 @@
       "edge": true,
       "avg_net_pct": 0.014,
       "journal_trades": 14
+    },
+    {
+      "date": "2026-11-25 11:30",
+      "auc": 0.5202,
+      "winner": "champion",
+      "edge": false,
+      "avg_net_pct": null,
+      "journal_trades": 18
     }
   ],
   "leaderboard": [
     {
       "config": {
         "kind": "hgb",
-        "learning_rate": 0.0965,
+        "learning_rate": 0.1064,
         "max_leaf_nodes": 24,
-        "min_samples_leaf": 100,
-        "l2": 3.729,
-        "max_iter": 200,
-        "max_features": 0.7,
+        "min_samples_leaf": 1000,
+        "l2": 0.456,
+        "max_iter": 100,
+        "max_features": 0.5,
         "features": "no_strategy_signals"
       },
-      "val_auc": 0.5523
+      "val_auc": 0.5483
     },
     {
       "config": {
@@ -164,72 +167,34 @@
         "max_features": 0.7,
         "features": "no_strategy_signals"
       },
-      "val_auc": 0.5495
+      "val_auc": 0.5418
     },
     {
       "config": {
         "kind": "hgb",
-        "learning_rate": 0.1064,
+        "learning_rate": 0.0965,
         "max_leaf_nodes": 24,
-        "min_samples_leaf": 1000,
-        "l2": 0.456,
-        "max_iter": 100,
-        "max_features": 0.5,
-        "features": "no_strategy_signals"
-      },
-      "val_auc": 0.5447
-    },
-    {
-      "config": {
-        "kind": "hgb",
-        "learning_rate": 0.1151,
-        "max_leaf_nodes": 31,
-        "min_samples_leaf": 200,
-        "l2": 1.294,
-        "max_iter": 200,
-        "max_features": 0.5,
-        "features": "no_strategy_signals"
-      },
-      "val_auc": 0.5432
-    },
-    {
-      "config": {
-        "kind": "hgb",
-        "learning_rate": 0.043,
-        "max_leaf_nodes": 48,
-        "min_samples_leaf": 1000,
-        "l2": 0.166,
-        "max_iter": 300,
-        "max_features": 0.7,
-        "features": "no_strategy_signals"
-      },
-      "val_auc": 0.5416
-    },
-    {
-      "config": {
-        "kind": "hgb",
-        "learning_rate": 0.0221,
-        "max_leaf_nodes": 31,
-        "min_samples_leaf": 2000,
-        "l2": 4.1,
-        "max_iter": 200,
-        "max_features": 0.7,
-        "features": "no_strategy_signals"
-      },
-      "val_auc": 0.5414
-    },
-    {
-      "config": {
-        "kind": "hgb",
-        "learning_rate": 0.0778,
-        "max_leaf_nodes": 7,
         "min_samples_leaf": 100,
-        "l2": 0.282,
+        "l2": 3.729,
         "max_iter": 200,
         "max_features": 0.7,
         "features": "no_strategy_signals"
       },
-      "val_auc": 0.5382
+      "val_auc": 0.5374
+    },
+    {
+      "config": {
+        "kind": "ens",
+        "C": 0.0059,
+        "learning_rate": 0.1207,
+        "max_leaf_nodes": 48,
+        "min_samples_leaf": 2000,
+        "l2": 2.229,
+        "max_iter": 200,
+        "max_features": 0.5,
+        "features": "no_market_mood"
+      },
+      "val_auc": 0.4964
     }
   ]
 }
