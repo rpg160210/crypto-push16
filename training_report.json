@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-11-26T06:04+00:00",
+  "trained_at": "2026-11-26T06:18+00:00",
   "demo_data": false,
   "coins": 645,
   "coin_days": 460445,
@@ -139,13 +139,6 @@
   },
   "buy_and_hold_avg_7d_return_test": -1.12,
   "history": [
-    {
-      "date": "2026-11-24 03:48",
-      "auc": 0.5089,
-      "winner": "champion",
-      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
-      "coin_days": 459403
-    },
     {
       "date": "2026-11-24 04:03",
       "auc": 0.5089,
@@ -1538,6 +1531,13 @@
       "winner": "champion",
       "model": "trees+linear ensemble lr=0.0301 leaves=7 min_leaf=1000 C=0.0211 [ranks_only]",
       "coin_days": 460445
+    },
+    {
+      "date": "2026-11-26 06:18",
+      "auc": 0.5555,
+      "winner": "champion",
+      "model": "trees+linear ensemble lr=0.0301 leaves=7 min_leaf=1000 C=0.0211 [ranks_only]",
+      "coin_days": 460445
     }
   ],
   "leaderboard": [
@@ -1585,14 +1585,6 @@
     },
     {
       "config": {
-        "kind": "logreg",
-        "C": 0.0053,
-        "features": "with_ranks"
-      },
-      "val_auc": 0.5513
-    },
-    {
-      "config": {
         "kind": "ens",
         "learning_rate": 0.05,
         "max_leaf_nodes": 15,
@@ -1608,16 +1600,16 @@
     {
       "config": {
         "kind": "ens",
-        "C": 0.4088,
-        "learning_rate": 0.0607,
-        "max_leaf_nodes": 31,
+        "C": 0.0099,
+        "learning_rate": 0.0329,
+        "max_leaf_nodes": 7,
         "min_samples_leaf": 2000,
-        "l2": 0.618,
+        "l2": 0.23,
         "max_iter": 100,
-        "max_features": 1.0,
-        "features": "all"
+        "max_features": 0.5,
+        "features": "no_strategy_signals"
       },
-      "val_auc": 0.5462
+      "val_auc": 0.5461
     },
     {
       "config": {
@@ -1635,36 +1627,50 @@
     },
     {
       "config": {
-        "kind": "hgb",
-        "C": 0.0051,
-        "learning_rate": 0.0298,
-        "max_leaf_nodes": 31,
-        "min_samples_leaf": 500,
-        "l2": 1.223,
-        "max_iter": 200,
+        "kind": "ens",
+        "C": 0.0123,
+        "learning_rate": 0.0259,
+        "max_leaf_nodes": 7,
+        "min_samples_leaf": 200,
+        "l2": 0.668,
+        "max_iter": 300,
         "max_features": 0.7,
-        "features": "no_strategy_signals"
+        "features": "no_market_mood"
       },
-      "val_auc": 0.5422
+      "val_auc": 0.5445
     },
     {
       "config": {
         "kind": "hgb",
-        "C": 0.2245,
-        "learning_rate": 0.0208,
+        "C": 0.069,
+        "learning_rate": 0.0285,
         "max_leaf_nodes": 48,
-        "min_samples_leaf": 500,
-        "l2": 0.163,
+        "min_samples_leaf": 1000,
+        "l2": 0.144,
         "max_iter": 200,
         "max_features": 0.5,
-        "features": "price_volume_only"
+        "features": "no_strategy_signals"
       },
-      "val_auc": 0.538
+      "val_auc": 0.544
+    },
+    {
+      "config": {
+        "kind": "hgb",
+        "C": 0.9601,
+        "learning_rate": 0.0219,
+        "max_leaf_nodes": 15,
+        "min_samples_leaf": 500,
+        "l2": 0.72,
+        "max_iter": 300,
+        "max_features": 0.7,
+        "features": "no_market_mood"
+      },
+      "val_auc": 0.542
     }
   ],
   "call_review": {
     "reviewed": 264,
-    "waiting_for_7_days": 208,
+    "waiting_for_7_days": 212,
     "overall_right_pct": 79.2,
     "by_call": {
       "analyze:STRONG BUY": {
@@ -1689,8 +1695,8 @@
         "calls": 22,
         "right": 18,
         "right_pct": 81.8,
-        "avg_7d_return_pct": -6.87,
-        "btc_same_weeks_pct": -5.7,
+        "avg_7d_return_pct": -6.88,
+        "btc_same_weeks_pct": -5.72,
         "beat_btc": 10,
         "beat_btc_of": 22
       },
@@ -1707,8 +1713,8 @@
         "calls": 5,
         "right": 5,
         "right_pct": 100.0,
-        "avg_7d_return_pct": -2.48,
-        "btc_same_weeks_pct": -3.92,
+        "avg_7d_return_pct": -2.59,
+        "btc_same_weeks_pct": -4.08,
         "beat_btc": 1,
         "beat_btc_of": 5
       }
