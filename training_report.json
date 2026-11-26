@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-11-26T12:34+00:00",
+  "trained_at": "2026-11-26T12:48+00:00",
   "demo_data": false,
   "coins": 645,
   "coin_days": 460445,
@@ -139,13 +139,6 @@
   },
   "buy_and_hold_avg_7d_return_test": -1.12,
   "history": [
-    {
-      "date": "2026-11-24 10:19",
-      "auc": 0.5112,
-      "winner": "champion",
-      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
-      "coin_days": 459613
-    },
     {
       "date": "2026-11-24 10:33",
       "auc": 0.5112,
@@ -1538,6 +1531,13 @@
       "winner": "champion",
       "model": "trees+linear ensemble lr=0.0301 leaves=7 min_leaf=1000 C=0.0211 [ranks_only]",
       "coin_days": 460445
+    },
+    {
+      "date": "2026-11-26 12:48",
+      "auc": 0.5555,
+      "winner": "champion",
+      "model": "trees+linear ensemble lr=0.0301 leaves=7 min_leaf=1000 C=0.0211 [ranks_only]",
+      "coin_days": 460445
     }
   ],
   "leaderboard": [
@@ -1585,14 +1585,6 @@
     },
     {
       "config": {
-        "kind": "logreg",
-        "C": 0.0543,
-        "features": "ranks_only"
-      },
-      "val_auc": 0.5506
-    },
-    {
-      "config": {
         "kind": "ens",
         "learning_rate": 0.05,
         "max_leaf_nodes": 15,
@@ -1604,6 +1596,20 @@
         "features": "with_ranks"
       },
       "val_auc": 0.5463
+    },
+    {
+      "config": {
+        "kind": "ens",
+        "C": 0.3802,
+        "learning_rate": 0.0938,
+        "max_leaf_nodes": 7,
+        "min_samples_leaf": 2000,
+        "l2": 1.705,
+        "max_iter": 300,
+        "max_features": 1.0,
+        "features": "all"
+      },
+      "val_auc": 0.5456
     },
     {
       "config": {
@@ -1621,39 +1627,45 @@
     },
     {
       "config": {
-        "kind": "hgb",
-        "C": 0.2244,
-        "learning_rate": 0.0291,
-        "max_leaf_nodes": 15,
-        "min_samples_leaf": 500,
-        "l2": 1.187,
-        "max_iter": 500,
-        "max_features": 0.5,
-        "features": "no_strategy_signals"
-      },
-      "val_auc": 0.5454
-    },
-    {
-      "config": {
-        "kind": "logreg",
-        "C": 0.0374,
-        "features": "no_strategy_signals"
-      },
-      "val_auc": 0.5439
-    },
-    {
-      "config": {
         "kind": "ens",
-        "C": 0.2185,
-        "learning_rate": 0.1017,
-        "max_leaf_nodes": 48,
-        "min_samples_leaf": 100,
-        "l2": 0.148,
-        "max_iter": 200,
+        "C": 0.4083,
+        "learning_rate": 0.1225,
+        "max_leaf_nodes": 31,
+        "min_samples_leaf": 2000,
+        "l2": 0.172,
+        "max_iter": 500,
         "max_features": 1.0,
-        "features": "no_strategy_signals"
+        "features": "no_market_mood"
       },
-      "val_auc": 0.5416
+      "val_auc": 0.5365
+    },
+    {
+      "config": {
+        "kind": "hgb",
+        "C": 0.0046,
+        "learning_rate": 0.0644,
+        "max_leaf_nodes": 24,
+        "min_samples_leaf": 100,
+        "l2": 0.356,
+        "max_iter": 300,
+        "max_features": 1.0,
+        "features": "ranks_only"
+      },
+      "val_auc": 0.5288
+    },
+    {
+      "config": {
+        "kind": "hgb",
+        "C": 0.0091,
+        "learning_rate": 0.1109,
+        "max_leaf_nodes": 48,
+        "min_samples_leaf": 500,
+        "l2": 3.827,
+        "max_iter": 300,
+        "max_features": 1.0,
+        "features": "no_market_mood"
+      },
+      "val_auc": 0.5283
     }
   ],
   "call_review": {
@@ -1683,8 +1695,8 @@
         "calls": 22,
         "right": 18,
         "right_pct": 81.8,
-        "avg_7d_return_pct": -6.86,
-        "btc_same_weeks_pct": -5.7,
+        "avg_7d_return_pct": -6.84,
+        "btc_same_weeks_pct": -5.68,
         "beat_btc": 10,
         "beat_btc_of": 22
       },
@@ -1701,8 +1713,8 @@
         "calls": 5,
         "right": 5,
         "right_pct": 100.0,
-        "avg_7d_return_pct": -2.47,
-        "btc_same_weeks_pct": -3.93,
+        "avg_7d_return_pct": -2.28,
+        "btc_same_weeks_pct": -3.76,
         "beat_btc": 1,
         "beat_btc_of": 5
       }
