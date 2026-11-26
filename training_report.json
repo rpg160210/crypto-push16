@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-11-26T15:04+00:00",
+  "trained_at": "2026-11-26T15:19+00:00",
   "demo_data": false,
   "coins": 645,
   "coin_days": 460445,
@@ -139,13 +139,6 @@
   },
   "buy_and_hold_avg_7d_return_test": -1.12,
   "history": [
-    {
-      "date": "2026-11-24 12:48",
-      "auc": 0.5112,
-      "winner": "champion",
-      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
-      "coin_days": 459613
-    },
     {
       "date": "2026-11-24 13:03",
       "auc": 0.5112,
@@ -1538,6 +1531,13 @@
       "winner": "champion",
       "model": "trees+linear ensemble lr=0.0301 leaves=7 min_leaf=1000 C=0.0211 [ranks_only]",
       "coin_days": 460445
+    },
+    {
+      "date": "2026-11-26 15:19",
+      "auc": 0.5555,
+      "winner": "champion",
+      "model": "trees+linear ensemble lr=0.0301 leaves=7 min_leaf=1000 C=0.0211 [ranks_only]",
+      "coin_days": 460445
     }
   ],
   "leaderboard": [
@@ -1585,6 +1585,28 @@
     },
     {
       "config": {
+        "kind": "logreg",
+        "C": 0.056,
+        "features": "with_ranks"
+      },
+      "val_auc": 0.5513
+    },
+    {
+      "config": {
+        "kind": "ens",
+        "C": 0.0869,
+        "learning_rate": 0.0882,
+        "max_leaf_nodes": 31,
+        "min_samples_leaf": 2000,
+        "l2": 2.458,
+        "max_iter": 100,
+        "max_features": 1.0,
+        "features": "with_ranks"
+      },
+      "val_auc": 0.5479
+    },
+    {
+      "config": {
         "kind": "ens",
         "learning_rate": 0.05,
         "max_leaf_nodes": 15,
@@ -1600,16 +1622,16 @@
     {
       "config": {
         "kind": "ens",
-        "C": 0.1447,
-        "learning_rate": 0.0188,
+        "C": 0.0337,
+        "learning_rate": 0.0295,
         "max_leaf_nodes": 24,
-        "min_samples_leaf": 200,
-        "l2": 0.696,
-        "max_iter": 300,
-        "max_features": 1.0,
-        "features": "no_strategy_signals"
+        "min_samples_leaf": 2000,
+        "l2": 3.23,
+        "max_iter": 200,
+        "max_features": 0.7,
+        "features": "all"
       },
-      "val_auc": 0.546
+      "val_auc": 0.5455
     },
     {
       "config": {
@@ -1628,43 +1650,21 @@
     {
       "config": {
         "kind": "hgb",
-        "C": 0.1152,
-        "learning_rate": 0.0241,
-        "max_leaf_nodes": 7,
-        "min_samples_leaf": 100,
-        "l2": 0.211,
-        "max_iter": 500,
-        "max_features": 1.0,
-        "features": "price_volume_only"
-      },
-      "val_auc": 0.5453
-    },
-    {
-      "config": {
-        "kind": "logreg",
-        "C": 1.2749,
-        "features": "no_strategy_signals"
-      },
-      "val_auc": 0.5438
-    },
-    {
-      "config": {
-        "kind": "hgb",
-        "C": 0.0168,
-        "learning_rate": 0.1232,
+        "C": 0.2581,
+        "learning_rate": 0.0209,
         "max_leaf_nodes": 15,
-        "min_samples_leaf": 100,
-        "l2": 6.95,
-        "max_iter": 300,
-        "max_features": 0.7,
-        "features": "all"
+        "min_samples_leaf": 1000,
+        "l2": 0.347,
+        "max_iter": 200,
+        "max_features": 0.5,
+        "features": "no_market_mood"
       },
-      "val_auc": 0.5406
+      "val_auc": 0.542
     }
   ],
   "call_review": {
     "reviewed": 264,
-    "waiting_for_7_days": 249,
+    "waiting_for_7_days": 252,
     "overall_right_pct": 79.2,
     "by_call": {
       "analyze:STRONG BUY": {
@@ -1689,8 +1689,8 @@
         "calls": 22,
         "right": 18,
         "right_pct": 81.8,
-        "avg_7d_return_pct": -6.88,
-        "btc_same_weeks_pct": -5.71,
+        "avg_7d_return_pct": -6.91,
+        "btc_same_weeks_pct": -5.73,
         "beat_btc": 10,
         "beat_btc_of": 22
       },
@@ -1707,9 +1707,9 @@
         "calls": 5,
         "right": 5,
         "right_pct": 100.0,
-        "avg_7d_return_pct": -2.6,
-        "btc_same_weeks_pct": -4.02,
-        "beat_btc": 1,
+        "avg_7d_return_pct": -2.89,
+        "btc_same_weeks_pct": -4.18,
+        "beat_btc": 2,
         "beat_btc_of": 5
       }
     }
