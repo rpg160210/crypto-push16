@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-11-27T04:18+00:00",
+  "trained_at": "2026-11-27T04:35+00:00",
   "demo_data": false,
   "coins": 645,
   "coin_days": 460664,
@@ -139,13 +139,6 @@
   },
   "buy_and_hold_avg_7d_return_test": -1.12,
   "history": [
-    {
-      "date": "2026-11-25 02:03",
-      "auc": 0.5095,
-      "winner": "champion",
-      "model": "trees lr=0.0979 leaves=15 min_leaf=200 l2=0.257 iters=200 feat=0.7 [price_volume_only]",
-      "coin_days": 460446
-    },
     {
       "date": "2026-11-25 02:18",
       "auc": 0.5095,
@@ -1538,6 +1531,13 @@
       "winner": "champion",
       "model": "trees+linear ensemble lr=0.0301 leaves=7 min_leaf=1000 C=0.0211 [ranks_only]",
       "coin_days": 460664
+    },
+    {
+      "date": "2026-11-27 04:35",
+      "auc": 0.5565,
+      "winner": "champion",
+      "model": "trees+linear ensemble lr=0.0301 leaves=7 min_leaf=1000 C=0.0211 [ranks_only]",
+      "coin_days": 460664
     }
   ],
   "leaderboard": [
@@ -1600,16 +1600,16 @@
     {
       "config": {
         "kind": "ens",
-        "C": 0.211,
-        "learning_rate": 0.143,
-        "max_leaf_nodes": 24,
+        "C": 0.052,
+        "learning_rate": 0.0375,
+        "max_leaf_nodes": 7,
         "min_samples_leaf": 100,
-        "l2": 1.978,
-        "max_iter": 200,
-        "max_features": 0.5,
-        "features": "all"
+        "l2": 0.695,
+        "max_iter": 500,
+        "max_features": 1.0,
+        "features": "price_volume_only"
       },
-      "val_auc": 0.5468
+      "val_auc": 0.5485
     },
     {
       "config": {
@@ -1628,44 +1628,44 @@
     {
       "config": {
         "kind": "ens",
-        "C": 0.031,
-        "learning_rate": 0.0199,
-        "max_leaf_nodes": 31,
-        "min_samples_leaf": 100,
-        "l2": 6.302,
+        "C": 0.0475,
+        "learning_rate": 0.0281,
+        "max_leaf_nodes": 24,
+        "min_samples_leaf": 200,
+        "l2": 0.402,
         "max_iter": 500,
         "max_features": 0.5,
+        "features": "with_ranks"
+      },
+      "val_auc": 0.545
+    },
+    {
+      "config": {
+        "kind": "ens",
+        "C": 0.3086,
+        "learning_rate": 0.0831,
+        "max_leaf_nodes": 31,
+        "min_samples_leaf": 500,
+        "l2": 6.209,
+        "max_iter": 500,
+        "max_features": 0.7,
         "features": "no_market_mood"
       },
-      "val_auc": 0.5418
+      "val_auc": 0.538
     },
     {
       "config": {
         "kind": "hgb",
-        "C": 0.2287,
-        "learning_rate": 0.0965,
+        "C": 0.0843,
+        "learning_rate": 0.0397,
         "max_leaf_nodes": 48,
-        "min_samples_leaf": 2000,
-        "l2": 0.359,
-        "max_iter": 300,
-        "max_features": 1.0,
-        "features": "all"
-      },
-      "val_auc": 0.5352
-    },
-    {
-      "config": {
-        "kind": "hgb",
-        "C": 0.0367,
-        "learning_rate": 0.0359,
-        "max_leaf_nodes": 31,
-        "min_samples_leaf": 2000,
-        "l2": 1.922,
-        "max_iter": 300,
-        "max_features": 1.0,
+        "min_samples_leaf": 1000,
+        "l2": 8.179,
+        "max_iter": 500,
+        "max_features": 0.5,
         "features": "price_volume_only"
       },
-      "val_auc": 0.5335
+      "val_auc": 0.5291
     }
   ],
   "call_review": {
