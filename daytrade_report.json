@@ -1,17 +1,17 @@
 {
-  "trained_at": "2026-11-27 11:06",
+  "trained_at": "2026-11-28 10:40",
   "demo_data": false,
   "coins": 149,
-  "simulated_trades": 431782,
-  "own_paper_trades_used": 26,
+  "simulated_trades": 430961,
+  "own_paper_trades_used": 32,
   "hold_hours": 12,
   "cost_per_trade_pct": 0.25,
   "exam": {
-    "auc": 0.5277,
+    "auc": 0.5312,
     "winner": "champion",
     "model": "trees lr=0.1064 leaves=24 min_leaf=1000 l2=0.456 iters=100 feat=0.5 [no_strategy_signals]",
     "signals": null,
-    "take_every_trade_avg_net_pct": -0.471,
+    "take_every_trade_avg_net_pct": -0.47,
     "market_filter": {
       "enabled": false,
       "why": "trading only in BTC uptrends didn't find an edge either"
@@ -156,21 +156,30 @@
       "edge": false,
       "avg_net_pct": null,
       "journal_trades": 26
+    },
+    {
+      "date": "2026-11-28 10:40",
+      "auc": 0.5312,
+      "winner": "champion",
+      "edge": false,
+      "avg_net_pct": null,
+      "journal_trades": 32
     }
   ],
   "leaderboard": [
     {
       "config": {
         "kind": "hgb",
-        "learning_rate": 0.1064,
-        "max_leaf_nodes": 24,
-        "min_samples_leaf": 1000,
-        "l2": 0.456,
-        "max_iter": 100,
-        "max_features": 0.5,
-        "features": "no_strategy_signals"
+        "C": 0.1724,
+        "learning_rate": 0.0404,
+        "max_leaf_nodes": 31,
+        "min_samples_leaf": 2000,
+        "l2": 7.84,
+        "max_iter": 500,
+        "max_features": 0.7,
+        "features": "with_ranks"
       },
-      "val_auc": 0.5502
+      "val_auc": 0.5545
     },
     {
       "config": {
@@ -184,56 +193,70 @@
         "max_features": 0.5,
         "features": "no_strategy_signals"
       },
-      "val_auc": 0.5411
+      "val_auc": 0.5532
     },
     {
       "config": {
         "kind": "hgb",
-        "C": 0.1724,
-        "learning_rate": 0.0404,
-        "max_leaf_nodes": 31,
+        "C": 0.0116,
+        "learning_rate": 0.0299,
+        "max_leaf_nodes": 48,
         "min_samples_leaf": 2000,
-        "l2": 7.84,
-        "max_iter": 500,
-        "max_features": 0.7,
-        "features": "with_ranks"
-      },
-      "val_auc": 0.539
-    },
-    {
-      "config": {
-        "kind": "hgb",
-        "learning_rate": 0.0965,
-        "max_leaf_nodes": 24,
-        "min_samples_leaf": 100,
-        "l2": 3.729,
+        "l2": 1.249,
         "max_iter": 200,
-        "max_features": 0.7,
+        "max_features": 1.0,
         "features": "no_strategy_signals"
       },
-      "val_auc": 0.5318
+      "val_auc": 0.5401
+    },
+    {
+      "config": {
+        "kind": "hgb",
+        "learning_rate": 0.1064,
+        "max_leaf_nodes": 24,
+        "min_samples_leaf": 1000,
+        "l2": 0.456,
+        "max_iter": 100,
+        "max_features": 0.5,
+        "features": "no_strategy_signals"
+      },
+      "val_auc": 0.5359
+    },
+    {
+      "config": {
+        "kind": "hgb",
+        "C": 0.696,
+        "learning_rate": 0.0661,
+        "max_leaf_nodes": 48,
+        "min_samples_leaf": 100,
+        "l2": 7.11,
+        "max_iter": 300,
+        "max_features": 1.0,
+        "features": "no_strategy_signals"
+      },
+      "val_auc": 0.5337
+    },
+    {
+      "config": {
+        "kind": "hgb",
+        "C": 0.0429,
+        "learning_rate": 0.0192,
+        "max_leaf_nodes": 48,
+        "min_samples_leaf": 200,
+        "l2": 0.241,
+        "max_iter": 100,
+        "max_features": 1.0,
+        "features": "all"
+      },
+      "val_auc": 0.5271
     },
     {
       "config": {
         "kind": "logreg",
-        "C": 0.2058,
+        "C": 0.0393,
         "features": "no_strategy_signals"
       },
-      "val_auc": 0.4845
-    },
-    {
-      "config": {
-        "kind": "hgb",
-        "C": 0.1216,
-        "learning_rate": 0.1051,
-        "max_leaf_nodes": 7,
-        "min_samples_leaf": 500,
-        "l2": 1.133,
-        "max_iter": 100,
-        "max_features": 1.0,
-        "features": "no_market_mood"
-      },
-      "val_auc": 0.467
+      "val_auc": 0.4927
     }
   ]
 }
